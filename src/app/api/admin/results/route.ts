@@ -1,0 +1,60 @@
+import { NextResponse } from "next/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+
+export async function POST(request: Request) {
+  const secret = request.headers.get("x-admin-secret");
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const { match_id, home_score, away_score } = body;
+
+  if (
+    typeof match_id !== "number" ||
+    typeof home_score !== "number" ||
+    typeof away_score !== "number" ||
+    home_score < 0 || away_score < 0
+  ) {
+    return NextResponse.json({ error: "Datos inválidos." }, { status: 400 });
+  }
+
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: match } = await supabase
+    .from("matches")
+    .select("home_score, away_score")
+    .eq("id", match_id)
+    .single();
+
+  if (!match) return NextResponse.json({ error: "Partido no encontrado." }, { status: 404 });
+
+  const { error: updateError } = await supabase
+    .from("matches")
+    .update({
+      home_score,
+      away_score,
+      status: "finished",
+      result_updated_at: new Date().toISOString(),
+      result_source: "admin",
+    })
+    .eq("id", match_id);
+
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+  await supabase.from("result_audit_log").insert({
+    match_id,
+    source: "admin",
+    previous_home: match.home_score ?? null,
+    previous_away: match.away_score ?? null,
+    new_home: home_score,
+    new_away: away_score,
+  });
+
+  const { data: count } = await supabase.rpc("calculate_match_points", { p_match_id: match_id });
+
+  return NextResponse.json({ ok: true, predictions_processed: count ?? 0 });
+}
