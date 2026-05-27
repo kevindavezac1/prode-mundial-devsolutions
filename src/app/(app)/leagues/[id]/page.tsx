@@ -45,11 +45,14 @@ export default async function LeaguePage({ params }: { params: { id: string } })
 
   return (
     <main className="min-h-screen pb-8">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
-        <Link href="/leagues" className="text-muted-foreground text-sm">‹ Volver</Link>
+      <header
+        className="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center gap-3"
+        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <Link href="/leagues" className="text-sm shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>‹ Volver</Link>
         <div className="min-w-0">
-          <h1 className="font-bold text-lg truncate">{league.name}</h1>
-          <p className="text-xs text-muted-foreground">{sorted.length} / {league.max_members} miembros</p>
+          <h1 className="font-bold text-lg truncate text-white">{league.name}</h1>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{sorted.length} / {league.max_members} miembros</p>
         </div>
       </header>
       <div className="p-4">

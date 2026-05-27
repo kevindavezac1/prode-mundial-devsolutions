@@ -48,6 +48,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        wc: {
+          navy: "#0A1F44",
+          "navy-deep": "#061230",
+          red: "#E4002B",
+          "red-hover": "#B8001F",
+          white: "#FFFFFF",
+          cream: "#F5F1E8",
+          gold: "#D4AF37",
+          "green-field": "#0A6E3E",
+          "gray-100": "#E8EAED",
+          "gray-500": "#6B7280",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -55,7 +67,8 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-bebas)", "Impact", "sans-serif"],
       },
     },
   },

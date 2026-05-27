@@ -32,22 +32,26 @@ export default async function JoinPage({
       <main className="flex min-h-screen flex-col items-center justify-center p-6 max-w-sm mx-auto text-center gap-4">
         <div className="space-y-2">
           <p className="text-2xl">⚽</p>
-          <h1 className="text-xl font-bold">Unirte a liga</h1>
+          <h1 className="text-xl font-bold text-white">Unirte a liga</h1>
           {leagueName ? (
-            <p className="text-muted-foreground text-sm">
-              Te invitaron a <span className="font-semibold text-foreground">{leagueName}</span>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Te invitaron a <span className="font-semibold text-white">{leagueName}</span>
             </p>
           ) : (
-            <p className="text-muted-foreground text-sm">Código: {code}</p>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Código: {code}</p>
           )}
         </div>
         <Link
           href={`/login?redirect=/join/${code}`}
-          className="flex h-12 w-full items-center justify-center rounded-md bg-primary px-4 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-semibold text-white transition-all active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+            boxShadow: "0 4px 16px rgba(228,0,43,0.25)",
+          }}
         >
           Iniciar sesión para unirme
         </Link>
-        <Link href="/register" className="text-sm text-muted-foreground hover:underline">
+        <Link href="/register" className="text-sm hover:underline" style={{ color: "rgba(255,255,255,0.5)" }}>
           ¿No tenés cuenta? Registrate
         </Link>
       </main>
@@ -65,9 +69,9 @@ export default async function JoinPage({
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6 max-w-sm mx-auto text-center gap-4">
         <p className="text-xl">❌</p>
-        <h1 className="text-lg font-bold">Código inválido</h1>
-        <p className="text-sm text-muted-foreground">No existe una liga con ese código.</p>
-        <Link href="/leagues" className="text-sm text-primary hover:underline">Ver mis ligas</Link>
+        <h1 className="text-lg font-bold text-white">Código inválido</h1>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>No existe una liga con ese código.</p>
+        <Link href="/leagues" className="text-sm font-semibold" style={{ color: "#E4002B" }}>Ver mis ligas</Link>
       </main>
     );
   }

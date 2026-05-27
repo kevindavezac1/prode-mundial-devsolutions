@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { APP_NAME, APP_DESCRIPTION } from "@/constants";
+import { inter, bebas } from "@/lib/fonts";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
@@ -29,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+    <html lang="es" className={cn("font-sans", inter.variable, bebas.variable)} suppressHydrationWarning>
+      <body className="min-h-screen antialiased" style={{ background: "#07090f", color: "#ffffff" }}>
         {children}
         <Toaster position="top-center" richColors />
       </body>

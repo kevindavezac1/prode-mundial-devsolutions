@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateDisplayName } from "@/app/(protected)/profile/actions";
+import { updateDisplayName } from "@/app/(app)/profile/actions";
 
 export function EditDisplayName({ currentName }: { currentName: string }) {
   const [name, setName] = useState(currentName);
@@ -43,7 +43,7 @@ export function EditDisplayName({ currentName }: { currentName: string }) {
           {isPending ? "…" : "Guardar"}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">{name.trim().length}/30</p>
+      <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{name.trim().length}/30</p>
     </form>
   );
 }

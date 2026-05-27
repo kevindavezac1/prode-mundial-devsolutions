@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
@@ -38,19 +37,25 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
   return (
     <div className="space-y-6">
       <div className="space-y-1 text-center">
-        <h1 className="text-2xl font-bold">Iniciá sesión</h1>
-        <p className="text-sm text-muted-foreground">Prode Mundial 2026</p>
+        <h1 className="text-2xl font-bold text-white">Iniciá sesión</h1>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Prode Mundial 2026</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-white">Email</Label>
           <Input
             id="email"
             type="email"
             placeholder="tu@email.com"
             autoComplete="email"
             disabled={isPending}
+            className="rounded-xl"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "white",
+            }}
             {...register("email")}
           />
           {errors.email && (
@@ -59,13 +64,19 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="password">Contraseña</Label>
+          <Label htmlFor="password" className="text-white">Contraseña</Label>
           <Input
             id="password"
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
             disabled={isPending}
+            className="rounded-xl"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "white",
+            }}
             {...register("password")}
           />
           {errors.password && (
@@ -77,34 +88,51 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           <p className="text-sm text-destructive text-center">{serverError}</p>
         )}
 
-        <Button type="submit" className="w-full" disabled={isPending}>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="w-full h-11 rounded-xl text-base font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+          style={{
+            background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+            boxShadow: "0 4px 16px rgba(228,0,43,0.25)",
+          }}
+        >
           {isPending ? "Ingresando..." : "Ingresar"}
-        </Button>
+        </button>
       </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }} />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">o</span>
+          <span
+            className="px-2"
+            style={{ background: "#07090f", color: "rgba(255,255,255,0.3)" }}
+          >
+            o
+          </span>
         </div>
       </div>
 
-      <Button
+      <button
         type="button"
-        variant="outline"
-        className="w-full"
         onClick={handleGoogle}
         disabled={isPending}
+        className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
+        style={{
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          color: "white",
+        }}
       >
         <GoogleIcon />
         Continuar con Google
-      </Button>
+      </button>
 
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
         ¿No tenés cuenta?{" "}
-        <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+        <Link href="/register" className="font-semibold hover:underline" style={{ color: "#E4002B" }}>
           Registrate
         </Link>
       </p>

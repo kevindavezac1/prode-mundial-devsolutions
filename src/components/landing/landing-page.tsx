@@ -32,78 +32,266 @@ export function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080d1a] text-white flex flex-col">
-      {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-10 max-w-sm mx-auto w-full">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs text-green-400 font-medium mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Mundial FIFA 2026 · USA · México · Canadá
+    <main className="min-h-screen text-white overflow-x-hidden" style={{ background: "#02040a" }}>
+
+      {/* ── HERO ────────────────────────────────────────── */}
+      <div className="relative min-h-screen flex flex-col">
+
+        {/* Capa 2 — Logo Mundial decorativo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/2026_FIFA_World_Cup_emblem.svg/1200px-2026_FIFA_World_Cup_emblem.svg.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            bottom: "-40px",
+            right: "-60px",
+            width: "340px",
+            opacity: 0.12,
+            filter: "saturate(0.6)",
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        />
+
+        {/* Capa 3 — Tinte celeste argentino */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "radial-gradient(ellipse at top left, rgba(116,172,223,0.12) 0%, transparent 60%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Capa 4 — Gradiente de profundidad */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to bottom, transparent 0%, rgba(2,4,10,0.3) 50%, #02040a 100%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Capa 5 — Contenido */}
+        <div className="relative z-10 flex flex-col flex-1">
+
+          {/* Top bar */}
+          <div className="px-5 pt-6 flex justify-between items-center">
+            <span
+              className="font-display text-sm text-white"
+              style={{ letterSpacing: "2px" }}
+            >
+              PRODE MUNDIAL 2026
+            </span>
+            <Link
+              href="/login"
+              className="text-[11px] font-bold rounded-full px-3 py-1.5"
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                letterSpacing: "1px",
+              }}
+            >
+              INGRESAR
+            </Link>
+          </div>
+
+          {/* Central */}
+          <div className="px-6 pt-16 pb-0 flex-1">
+
+            {/* Franja argentina */}
+            <div
+              className="rounded-full mb-6"
+              style={{
+                width: "64px",
+                height: "3px",
+                background: "linear-gradient(90deg, #74ACDF, white, #74ACDF)",
+              }}
+            />
+
+            {/* Label */}
+            <p
+              className="font-bold mb-4"
+              style={{
+                fontSize: "10px",
+                color: "#74ACDF",
+                letterSpacing: "3px",
+              }}
+            >
+              MUNDIAL 2026 · USA · MÉXICO · CANADÁ
+            </p>
+
+            {/* Título */}
+            <div
+              className="font-display mb-5"
+              style={{ fontSize: "62px", lineHeight: 0.88 }}
+            >
+              <div style={{ color: "white" }}>GANALE A</div>
+              <div style={{ color: "#74ACDF" }}>TUS AMIGOS.</div>
+              <div style={{ color: "white" }}>PARTIDO A</div>
+              <div style={{ color: "#74ACDF" }}>PARTIDO.</div>
+            </div>
+
+            {/* Subtítulo */}
+            <p
+              className="text-sm leading-relaxed mb-8"
+              style={{ color: "rgba(255,255,255,0.5)", maxWidth: "280px" }}
+            >
+              Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
+            </p>
+          </div>
+
+          {/* CTA zone */}
+          <div className="px-6 pb-12">
+
+            {/* Botón Google */}
+            <button
+              onClick={handleGoogle}
+              disabled={isPending}
+              className="w-full flex items-center justify-center gap-3 rounded-xl font-bold text-sm text-white transition-all active:scale-[0.97] disabled:opacity-70"
+              style={{
+                height: "52px",
+                background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+                boxShadow: "0 4px 24px rgba(228,0,43,0.35)",
+                letterSpacing: "1.5px",
+              }}
+            >
+              {isPending ? (
+                "REDIRIGIENDO..."
+              ) : (
+                <>
+                  <GoogleIcon />
+                  ENTRAR CON GOOGLE
+                </>
+              )}
+            </button>
+
+            {/* Link email */}
+            <p className="mt-3 text-[11px] text-center block" style={{ color: "rgba(255,255,255,0.35)" }}>
+              También podés{" "}
+              <Link
+                href="/login"
+                className="underline underline-offset-2"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
+                Iniciá sesión con email
+              </Link>
+            </p>
+
+            {/* Social proof */}
+            <div className="mt-6 flex items-center gap-2">
+              {/* Avatares apilados */}
+              <div className="flex items-center">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{
+                    background: "#74ACDF",
+                    border: "2px solid #02040a",
+                    fontSize: "9px",
+                    fontWeight: 900,
+                    color: "#02040a",
+                  }}
+                >
+                  M
+                </div>
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center -ml-2"
+                  style={{
+                    background: "#E4002B",
+                    border: "2px solid #02040a",
+                    fontSize: "9px",
+                    fontWeight: 900,
+                    color: "white",
+                  }}
+                >
+                  J
+                </div>
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center -ml-2"
+                  style={{
+                    background: "#D4AF37",
+                    border: "2px solid #02040a",
+                    fontSize: "9px",
+                    fontWeight: 900,
+                    color: "#02040a",
+                  }}
+                >
+                  P
+                </div>
+              </div>
+              <p className="text-[10px] ml-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+                +1.200 jugadores ya adentro
+              </p>
+            </div>
+
+          </div>
         </div>
+      </div>
 
-        {/* Title */}
-        <h1 className="text-4xl font-extrabold tracking-tight text-center leading-tight mb-3">
-          Predecí el<br />
-          <span className="text-green-400">Mundial 2026</span>
-        </h1>
+      {/* ── CÓMO FUNCIONA ───────────────────────────────── */}
+      <div className="px-6 py-10" style={{ background: "#02040a" }}>
 
-        <p className="text-slate-400 text-center text-base mb-10 leading-relaxed">
-          Competí con tus amigos, sumá puntos por cada acierto y dominá el ranking de tu liga.
-        </p>
+        {/* Divisor */}
+        <div className="mb-8" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
-        {/* CTA */}
-        <button
-          onClick={handleGoogle}
-          disabled={isPending}
-          className="w-full flex items-center justify-center gap-3 h-13 px-6 rounded-xl bg-white text-gray-900 font-semibold text-base hover:bg-gray-100 transition-colors disabled:opacity-70 shadow-lg shadow-black/20"
-          style={{ height: "52px" }}
+        {/* Label sección */}
+        <p
+          className="font-bold text-center mb-6"
+          style={{
+            fontSize: "10px",
+            color: "rgba(255,255,255,0.2)",
+            letterSpacing: "3px",
+          }}
         >
-          {isPending ? (
-            <span className="text-sm">Redirigiendo…</span>
-          ) : (
-            <>
-              <GoogleIcon />
-              Entrar con Google
-            </>
-          )}
-        </button>
-
-        <p className="mt-3 text-xs text-slate-500 text-center">
-          También podés{" "}
-          <Link href="/login" className="text-slate-400 underline underline-offset-2 hover:text-white">
-            iniciar sesión con email
-          </Link>
+          CÓMO FUNCIONA
         </p>
-
-        {/* Divider */}
-        <div className="w-full flex items-center gap-3 my-10">
-          <div className="flex-1 h-px bg-slate-800" />
-          <span className="text-xs text-slate-600 uppercase tracking-widest">Cómo funciona</span>
-          <div className="flex-1 h-px bg-slate-800" />
-        </div>
 
         {/* Steps */}
-        <div className="w-full space-y-3">
+        <div className="space-y-3">
           {steps.map((step) => (
             <div
               key={step.n}
-              className="flex gap-4 rounded-xl border border-slate-700/40 bg-slate-800/30 px-4 py-3.5"
+              className="rounded-2xl p-4 flex gap-4 items-start"
+              style={{
+                background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}
             >
-              <span className="text-2xl font-black text-green-500/40 tabular-nums shrink-0 leading-tight mt-0.5">
+              <span
+                className="font-display leading-none shrink-0"
+                style={{
+                  fontSize: "40px",
+                  color: "rgba(116,172,223,0.2)",
+                  width: "40px",
+                }}
+              >
                 {step.n}
               </span>
               <div>
-                <p className="font-semibold text-sm text-white">{step.title}</p>
-                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{step.desc}</p>
+                <p className="font-bold text-sm text-white mb-0.5">{step.title}</p>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  {step.desc}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Footer note */}
-        <p className="mt-10 text-xs text-slate-600 text-center">
+        {/* Footer */}
+        <p
+          className="mt-10 text-center"
+          style={{
+            fontSize: "10px",
+            color: "rgba(255,255,255,0.18)",
+            letterSpacing: "1px",
+          }}
+        >
           Gratis · Sin publicidad · 48 equipos · 104 partidos
         </p>
+
       </div>
     </main>
   );

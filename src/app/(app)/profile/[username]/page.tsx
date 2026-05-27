@@ -49,15 +49,21 @@ export default async function PublicProfilePage({
 
   return (
     <main className="min-h-screen pb-8">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
-        <Link href="/rankings" className="text-muted-foreground text-sm">‹ Rankings</Link>
-        <h1 className="font-bold text-lg truncate">{profile.display_name}</h1>
+      <header
+        className="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center gap-3"
+        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <Link href="/rankings" className="text-sm shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>‹ Rankings</Link>
+        <h1 className="font-bold text-lg truncate text-white">{profile.display_name}</h1>
       </header>
 
       <div className="p-4 space-y-6">
         {/* Avatar + identity */}
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-muted overflow-hidden shrink-0 flex items-center justify-center text-2xl font-bold">
+          <div
+            className="w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-2xl font-bold text-white"
+            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          >
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
@@ -66,14 +72,14 @@ export default async function PublicProfilePage({
             )}
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-lg truncate">{profile.display_name}</p>
-            <p className="text-xs text-muted-foreground">@{profile.username}</p>
+            <p className="font-bold text-lg truncate text-white">{profile.display_name}</p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>@{profile.username}</p>
           </div>
         </div>
 
         {/* Stats */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Estadísticas</p>
+          <p className="text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}>Estadísticas</p>
           <ProfileStats
             totalPoints={profile.total_points}
             exactPredictions={profile.exact_predictions}
@@ -85,7 +91,7 @@ export default async function PublicProfilePage({
 
         {/* Prediction history — only finished matches are returned by RLS */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <p className="text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}>
             Predicciones (partidos finalizados)
           </p>
           <PredictionHistory predictions={(predictionsResult.data ?? []) as Parameters<typeof PredictionHistory>[0]["predictions"]} />

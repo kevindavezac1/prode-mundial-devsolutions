@@ -114,21 +114,25 @@ export function MatchesList({ matches }: Props) {
   return (
     <div>
       {/* Date navigation */}
-      <div className="sticky top-[60px] z-10 bg-background/95 backdrop-blur border-b flex items-center px-2 py-2 gap-1">
+      <div
+        className="sticky top-[60px] z-10 backdrop-blur flex items-center px-2 py-2 gap-1"
+        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
         <button
           onClick={() => setSelectedIdx((i) => i - 1)}
           disabled={!canPrev}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+          style={{ color: "rgba(255,255,255,0.5)" }}
           aria-label="Día anterior"
         >
           ‹
         </button>
 
         <div className="flex-1 text-center">
-          <p className="text-sm font-semibold capitalize">
+          <p className="text-sm font-semibold capitalize text-white">
             {current?.label ?? "–"}
           </p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
             {current ? `${current.matches.length} partido${current.matches.length !== 1 ? "s" : ""}` : ""}
           </p>
         </div>
@@ -136,7 +140,8 @@ export function MatchesList({ matches }: Props) {
         <button
           onClick={() => setSelectedIdx((i) => i + 1)}
           disabled={!canNext}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+          style={{ color: "rgba(255,255,255,0.5)" }}
           aria-label="Día siguiente"
         >
           ›

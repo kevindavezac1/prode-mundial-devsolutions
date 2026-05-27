@@ -33,9 +33,12 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen pb-8">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">
-        <h1 className="font-bold text-lg">Admin · Resultados</h1>
-        <p className="text-xs text-muted-foreground">{user.email}</p>
+      <header
+        className="sticky top-0 z-10 backdrop-blur px-4 py-3"
+        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <h1 className="font-bold text-lg text-white">Admin · Resultados</h1>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{user.email}</p>
       </header>
       <div className="p-4">
         <AdminPanel matches={(matches ?? []) as unknown as MatchWithTeams[]} />

@@ -39,11 +39,14 @@ export default async function RankingsPage() {
 
   return (
     <main className="min-h-screen pb-8">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
-        <Link href="/dashboard" className="text-muted-foreground text-sm">‹ Volver</Link>
+      <header
+        className="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center gap-3"
+        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <Link href="/dashboard" className="text-sm shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>‹ Volver</Link>
         <div>
-          <h1 className="font-bold text-lg">Rankings</h1>
-          <p className="text-xs text-muted-foreground">Top jugadores</p>
+          <h1 className="font-bold text-lg text-white">Rankings</h1>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Top jugadores</p>
         </div>
       </header>
       <div className="p-4">
