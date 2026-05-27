@@ -105,7 +105,11 @@ export function MyLeagues({ leagues, userId }: Props) {
             <Input
               id="invite-code"
               value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                const val = e.target.value;
+                const extracted = val.includes("/") ? val.split("/").filter(Boolean).pop() ?? val : val;
+                setCode(extracted.toUpperCase());
+              }}
               placeholder="Ej: AB12CD34"
               maxLength={12}
               disabled={isPending}
