@@ -2,11 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { loginWithGoogle } from "@/app/(auth)/login/actions";
-
-const TROPHY_URL =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/FIFA_World_Cup_Trophy_2010.jpg/220px-FIFA_World_Cup_Trophy_2010.jpg";
 
 const steps = [
   {
@@ -148,14 +144,13 @@ export function LandingPage() {
 
             {/* Right: trofeo */}
             <div className="flex justify-center md:justify-end md:shrink-0 mb-6 md:mb-0">
-              <Image
-                src={TROPHY_URL}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo_mundial.webp"
                 alt="Copa del Mundo FIFA"
-                width={220}
-                height={320}
-                priority
                 className="object-contain h-[120px] md:h-[180px] w-auto"
                 style={{
+                  mixBlendMode: "multiply",
                   filter: "drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
                 }}
               />
