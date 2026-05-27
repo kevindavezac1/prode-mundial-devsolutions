@@ -99,11 +99,25 @@ export function LandingPage() {
             </Link>
           </div>
 
-          {/* Central — responsive: mobile column, desktop row */}
-          <div className="px-6 pt-12 pb-0 flex-1 flex flex-col md:flex-row md:items-center md:gap-10 md:pt-16">
+          {/* Central — mobile: columna, desktop: dos columnas */}
+          <div className="px-6 pt-8 pb-0 flex-1 flex flex-col md:flex-row md:items-center md:gap-10 md:pt-16">
 
-            {/* Left: texto */}
-            <div className="flex-1">
+            {/* RIGHT (trofeo) — primero en DOM para mobile order-first */}
+            <div className="order-first md:order-last md:w-2/5 flex items-center justify-center mb-6 md:mb-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo_mundial.webp"
+                alt="Copa del Mundo FIFA"
+                className="object-contain h-[150px] md:h-[220px] w-auto"
+                style={{
+                  mixBlendMode: "multiply",
+                  filter: "drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+                }}
+              />
+            </div>
+
+            {/* LEFT: texto */}
+            <div className="md:w-3/5">
               {/* Franja argentina */}
               <div
                 className="rounded-full mb-6"
@@ -140,20 +154,6 @@ export function LandingPage() {
               >
                 Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
               </p>
-            </div>
-
-            {/* Right: trofeo */}
-            <div className="flex justify-center md:justify-end md:shrink-0 mb-6 md:mb-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/logo_mundial.webp"
-                alt="Copa del Mundo FIFA"
-                className="object-contain h-[120px] md:h-[180px] w-auto"
-                style={{
-                  mixBlendMode: "multiply",
-                  filter: "drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
-                }}
-              />
             </div>
 
           </div>
