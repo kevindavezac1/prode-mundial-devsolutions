@@ -7,10 +7,8 @@ import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 
 type Props = { league: LeagueDetail; userId: string };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 export function LeagueDetailView({ league, userId }: Props) {
-  const inviteLink = `${siteUrl}/join/${league.invite_code}`;
+  const inviteLink = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${league.invite_code}`;
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
