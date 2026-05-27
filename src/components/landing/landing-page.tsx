@@ -2,7 +2,11 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { loginWithGoogle } from "@/app/(auth)/login/actions";
+
+const TROPHY_URL =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/FIFA_World_Cup_Trophy_2010.jpg/220px-FIFA_World_Cup_Trophy_2010.jpg";
 
 const steps = [
   {
@@ -99,49 +103,64 @@ export function LandingPage() {
             </Link>
           </div>
 
-          {/* Central */}
-          <div className="px-6 pt-16 pb-0 flex-1">
+          {/* Central — responsive: mobile column, desktop row */}
+          <div className="px-6 pt-12 pb-0 flex-1 flex flex-col md:flex-row md:items-center md:gap-10 md:pt-16">
 
-            {/* Franja argentina */}
-            <div
-              className="rounded-full mb-6"
-              style={{
-                width: "64px",
-                height: "3px",
-                background: "linear-gradient(90deg, #74ACDF, white, #74ACDF)",
-              }}
-            />
+            {/* Left: texto */}
+            <div className="flex-1">
+              {/* Franja argentina */}
+              <div
+                className="rounded-full mb-6"
+                style={{
+                  width: "64px",
+                  height: "3px",
+                  background: "linear-gradient(90deg, #74ACDF, white, #74ACDF)",
+                }}
+              />
 
-            {/* Label */}
-            <p
-              className="font-bold mb-4"
-              style={{
-                fontSize: "10px",
-                color: "#74ACDF",
-                letterSpacing: "3px",
-              }}
-            >
-              MUNDIAL 2026 · USA · MÉXICO · CANADÁ
-            </p>
+              {/* Label */}
+              <p
+                className="font-bold mb-4"
+                style={{ fontSize: "10px", color: "#74ACDF", letterSpacing: "3px" }}
+              >
+                MUNDIAL 2026 · USA · MÉXICO · CANADÁ
+              </p>
 
-            {/* Título */}
-            <div
-              className="font-display mb-5"
-              style={{ fontSize: "62px", lineHeight: 0.88 }}
-            >
-              <div style={{ color: "white" }}>GANALE A</div>
-              <div style={{ color: "#74ACDF" }}>TUS AMIGOS.</div>
-              <div style={{ color: "white" }}>PARTIDO A</div>
-              <div style={{ color: "#74ACDF" }}>PARTIDO.</div>
+              {/* Título */}
+              <div
+                className="font-display mb-5"
+                style={{ fontSize: "62px", lineHeight: 0.88 }}
+              >
+                <div style={{ color: "white" }}>GANALE A</div>
+                <div style={{ color: "#74ACDF" }}>TUS AMIGOS.</div>
+                <div style={{ color: "white" }}>PARTIDO A</div>
+                <div style={{ color: "#74ACDF" }}>PARTIDO.</div>
+              </div>
+
+              {/* Subtítulo */}
+              <p
+                className="text-sm leading-relaxed mb-6 md:mb-0"
+                style={{ color: "rgba(255,255,255,0.5)", maxWidth: "280px" }}
+              >
+                Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
+              </p>
             </div>
 
-            {/* Subtítulo */}
-            <p
-              className="text-sm leading-relaxed mb-8"
-              style={{ color: "rgba(255,255,255,0.5)", maxWidth: "280px" }}
-            >
-              Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
-            </p>
+            {/* Right: trofeo */}
+            <div className="flex justify-center md:justify-end md:shrink-0 mb-6 md:mb-0">
+              <Image
+                src={TROPHY_URL}
+                alt="Copa del Mundo FIFA"
+                width={220}
+                height={320}
+                priority
+                className="object-contain h-[120px] md:h-[180px] w-auto"
+                style={{
+                  filter: "drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+                }}
+              />
+            </div>
+
           </div>
 
           {/* CTA zone */}
@@ -183,7 +202,6 @@ export function LandingPage() {
 
             {/* Social proof */}
             <div className="mt-6 flex items-center gap-2">
-              {/* Avatares apilados */}
               <div className="flex items-center">
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center"
@@ -234,22 +252,15 @@ export function LandingPage() {
       {/* ── CÓMO FUNCIONA ───────────────────────────────── */}
       <div className="px-6 py-10" style={{ background: "#02040a" }}>
 
-        {/* Divisor */}
         <div className="mb-8" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
-        {/* Label sección */}
         <p
           className="font-bold text-center mb-6"
-          style={{
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.2)",
-            letterSpacing: "3px",
-          }}
+          style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", letterSpacing: "3px" }}
         >
           CÓMO FUNCIONA
         </p>
 
-        {/* Steps */}
         <div className="space-y-3">
           {steps.map((step) => (
             <div
@@ -262,11 +273,7 @@ export function LandingPage() {
             >
               <span
                 className="font-display leading-none shrink-0"
-                style={{
-                  fontSize: "40px",
-                  color: "rgba(116,172,223,0.2)",
-                  width: "40px",
-                }}
+                style={{ fontSize: "40px", color: "rgba(116,172,223,0.2)", width: "40px" }}
               >
                 {step.n}
               </span>
@@ -280,14 +287,9 @@ export function LandingPage() {
           ))}
         </div>
 
-        {/* Footer */}
         <p
           className="mt-10 text-center"
-          style={{
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.18)",
-            letterSpacing: "1px",
-          }}
+          style={{ fontSize: "10px", color: "rgba(255,255,255,0.18)", letterSpacing: "1px" }}
         >
           Gratis · Sin publicidad · 48 equipos · 104 partidos
         </p>
