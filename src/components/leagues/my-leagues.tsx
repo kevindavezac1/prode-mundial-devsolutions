@@ -111,7 +111,6 @@ export function MyLeagues({ leagues, userId }: Props) {
                 setCode(extracted.toUpperCase());
               }}
               placeholder="Ej: AB12CD34"
-              maxLength={12}
               disabled={isPending}
             />
           </div>

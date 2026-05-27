@@ -8,12 +8,16 @@ import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 type Props = { league: LeagueDetail; userId: string };
 
 export function LeagueDetailView({ league, userId }: Props) {
-  const inviteLink = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${league.invite_code}`;
   const [copied, setCopied] = useState(false);
+
+  function getInviteLink() {
+    return `${window.location.origin}/join/${league.invite_code}`;
+  }
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(inviteLink);
+      const link = getInviteLink();
+      await navigator.clipboard.writeText(link);
       setCopied(true);
       toast.success("Link copiado");
       setTimeout(() => setCopied(false), 2000);
@@ -37,7 +41,9 @@ export function LeagueDetailView({ league, userId }: Props) {
             {copied ? "✓ Copiado" : "Copiar link"}
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground break-all">{inviteLink}</p>
+        <p className="text-[11px] text-muted-foreground break-all">
+          {`${typeof window !== "undefined" ? window.location.origin : "..."}/join/${league.invite_code}`}
+        </p>
       </div>
 
       {/* Leaderboard */}
