@@ -21,7 +21,6 @@ type StatsMap = Record<number, {
 
 type StandingsData = {
   groups: GroupStanding[];
-  groupPhaseComplete: boolean;
   qualifyingThirds: number[];
   tiedThirds: number[];
 };
@@ -202,15 +201,10 @@ const getStandings = unstable_cache(
     ]);
 
     if (!teams || teams.length === 0) {
-      return { groups: [], groupPhaseComplete: false, qualifyingThirds: [], tiedThirds: [] };
+      return { groups: [], qualifyingThirds: [], tiedThirds: [] };
     }
 
     const allMatches: MatchRow[] = (matches ?? []) as MatchRow[];
-
-    const groupPhaseComplete =
-      allMatches.length > 0 &&
-      allMatches.every((m) => m.status === "finished" || m.status === "cancelled");
-
     const stats = computeStats(teams as TeamRow[], allMatches);
 
     const grouped: Record<string, TeamRow[]> = {};
@@ -237,19 +231,16 @@ const getStandings = unstable_cache(
         return { group, teams: resolved };
       });
 
-    const { qualifyingThirds, tiedThirds } = groupPhaseComplete
-      ? computeThirdsClassification(groups)
-      : { qualifyingThirds: [], tiedThirds: [] };
+    const { qualifyingThirds, tiedThirds } = computeThirdsClassification(groups);
 
-    return { groups, groupPhaseComplete, qualifyingThirds, tiedThirds };
+    return { groups, qualifyingThirds, tiedThirds };
   },
   ["group-standings"],
   { revalidate: 60, tags: ["group-standings"] }
 );
 
 export default async function StandingsPage() {
-  const { groups, groupPhaseComplete, qualifyingThirds, tiedThirds } =
-    await getStandings();
+  const { groups, qualifyingThirds, tiedThirds } = await getStandings();
 
   return (
     <main className="min-h-screen pb-8">
@@ -268,7 +259,6 @@ export default async function StandingsPage() {
 
       <StandingsView
         groups={groups}
-        groupPhaseComplete={groupPhaseComplete}
         qualifyingThirds={qualifyingThirds}
         tiedThirds={tiedThirds}
       />

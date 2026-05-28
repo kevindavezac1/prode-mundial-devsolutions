@@ -23,18 +23,16 @@ export type GroupStanding = {
   teams: TeamStanding[];
 };
 
-type RowStatus = "qualifies" | "possible" | "tied-boundary" | "eliminated";
+type RowStatus = "qualifies" | "tied-boundary" | "eliminated";
 
 function getRowStatus(
   idx: number,
   team: TeamStanding,
-  groupPhaseComplete: boolean,
   qualifyingSet: Set<number>,
   tiedSet: Set<number>
 ): RowStatus {
   if (idx < 2) return "qualifies";
   if (idx === 2) {
-    if (!groupPhaseComplete) return "possible";
     if (qualifyingSet.has(team.team_id)) return "qualifies";
     if (tiedSet.has(team.team_id)) return "tied-boundary";
     return "eliminated";
@@ -44,46 +42,40 @@ function getRowStatus(
 
 const STATUS_ROW_BG: Record<RowStatus, string> = {
   "qualifies":      "rgba(34,197,94,0.06)",
-  "possible":       "rgba(234,179,8,0.06)",
   "tied-boundary":  "rgba(234,179,8,0.06)",
   "eliminated":     "transparent",
 };
 
 const STATUS_POS_BG: Record<RowStatus, string | null> = {
   "qualifies":      "rgba(34,197,94,0.25)",
-  "possible":       "rgba(234,179,8,0.25)",
   "tied-boundary":  "rgba(234,179,8,0.25)",
   "eliminated":     null,
 };
 
 const STATUS_POS_COLOR: Record<RowStatus, string> = {
   "qualifies":      "#22c55e",
-  "possible":       "#eab308",
   "tied-boundary":  "#eab308",
   "eliminated":     "rgba(255,255,255,0.35)",
 };
 
 const STATUS_NAME_COLOR: Record<RowStatus, string> = {
   "qualifies":      "rgba(255,255,255,0.95)",
-  "possible":       "rgba(255,255,255,0.85)",
   "tied-boundary":  "rgba(255,255,255,0.85)",
   "eliminated":     "rgba(255,255,255,0.5)",
 };
 
 const STATUS_PTS_COLOR: Record<RowStatus, string> = {
   "qualifies":      "#ffffff",
-  "possible":       "rgba(255,255,255,0.85)",
   "tied-boundary":  "rgba(255,255,255,0.85)",
   "eliminated":     "rgba(255,255,255,0.5)",
 };
 
 type GroupTableProps = GroupStanding & {
-  groupPhaseComplete: boolean;
   qualifyingSet: Set<number>;
   tiedSet: Set<number>;
 };
 
-function GroupTable({ group, teams, groupPhaseComplete, qualifyingSet, tiedSet }: GroupTableProps) {
+function GroupTable({ group, teams, qualifyingSet, tiedSet }: GroupTableProps) {
   return (
     <div
       className="rounded-xl overflow-hidden"
@@ -121,7 +113,7 @@ function GroupTable({ group, teams, groupPhaseComplete, qualifyingSet, tiedSet }
           </thead>
           <tbody>
             {teams.map((team, idx) => {
-              const status = getRowStatus(idx, team, groupPhaseComplete, qualifyingSet, tiedSet);
+              const status = getRowStatus(idx, team, qualifyingSet, tiedSet);
               const dgStr = team.dg > 0 ? `+${team.dg}` : String(team.dg);
               const posBgColor = STATUS_POS_BG[status];
               const showTiedStar = team.tied || (idx === 2 && status === "tied-boundary");
@@ -220,17 +212,11 @@ function GroupTable({ group, teams, groupPhaseComplete, qualifyingSet, tiedSet }
 
 type StandingsViewProps = {
   groups: GroupStanding[];
-  groupPhaseComplete: boolean;
   qualifyingThirds: number[];
   tiedThirds: number[];
 };
 
-export function StandingsView({
-  groups,
-  groupPhaseComplete,
-  qualifyingThirds,
-  tiedThirds,
-}: StandingsViewProps) {
+export function StandingsView({ groups, qualifyingThirds, tiedThirds }: StandingsViewProps) {
   const qualifyingSet = new Set(qualifyingThirds);
   const tiedSet = new Set(tiedThirds);
 
@@ -242,7 +228,6 @@ export function StandingsView({
             key={g.group}
             group={g.group}
             teams={g.teams}
-            groupPhaseComplete={groupPhaseComplete}
             qualifyingSet={qualifyingSet}
             tiedSet={tiedSet}
           />
@@ -252,15 +237,14 @@ export function StandingsView({
       <div className="mt-4 flex flex-col items-center gap-1">
         <div className="flex items-center gap-3 text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
           <span>
-            <span style={{ color: "#22c55e" }}>■</span> Clasifica a 16avos
+            <span style={{ color: "#22c55e" }}>■</span> Clasificaría
           </span>
           <span>
-            <span style={{ color: "#eab308" }}>■</span>{" "}
-            {groupPhaseComplete ? "Empate en corte" : "Posible clasificación"}
+            <span style={{ color: "#eab308" }}>■</span> En el límite *
           </span>
         </div>
         <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-          * empate en todos los criterios
+          Top 8 terceros clasifican · * empate en todos los criterios
         </p>
       </div>
     </div>
