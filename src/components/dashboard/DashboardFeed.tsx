@@ -91,6 +91,7 @@ export function DashboardFeed({ displayName }: Props) {
     match: PredictionSheetMatch;
     prediction: PredictionSheetExisting;
   } | null>(null);
+  const [upcomingDayIndex, setUpcomingDayIndex] = useState(0);
 
   const matches = response?.data ?? [];
   const now = useMemo(() => new Date(), []);
@@ -105,8 +106,8 @@ export function DashboardFeed({ displayName }: Props) {
     [matches, now]
   );
 
-  const upcomingMatches = useMemo(() => {
-    // Solo la próxima fecha con partidos (no hoy, no terminados)
+  // Fechas únicas futuras (sin hoy, sin terminados), ordenadas
+  const futureDates = useMemo(() => {
     const future = matches
       .filter((m) => {
         const scheduled = new Date(m.scheduled_at);
@@ -114,12 +115,21 @@ export function DashboardFeed({ displayName }: Props) {
       })
       .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
 
-    if (future.length === 0) return [];
-
-    // Acotar al día más próximo con partidos
-    const firstDate = new Date(future[0].scheduled_at);
-    return future.filter((m) => isSameDayARG(new Date(m.scheduled_at), firstDate));
+    const unique: Date[] = [];
+    for (const m of future) {
+      const d = new Date(m.scheduled_at);
+      if (!unique.some((u) => isSameDayARG(u, d))) unique.push(d);
+    }
+    return unique;
   }, [matches, now]);
+
+  const upcomingMatches = useMemo(() => {
+    const date = futureDates[upcomingDayIndex];
+    if (!date) return [];
+    return matches
+      .filter((m) => isSameDayARG(new Date(m.scheduled_at), date) && !isFinished(m))
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
+  }, [matches, futureDates, upcomingDayIndex]);
 
   const finishedMatches = useMemo(
     () =>
@@ -282,6 +292,52 @@ export function DashboardFeed({ displayName }: Props) {
         </TabsContent>
 
         <TabsContent value="proximos">
+          {futureDates.length > 0 && (
+            <div
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+            >
+              <button
+                onClick={() => setUpcomingDayIndex((i) => Math.max(0, i - 1))}
+                disabled={upcomingDayIndex === 0}
+                style={{
+                  color: upcomingDayIndex === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.6)",
+                  fontSize: "18px",
+                  lineHeight: 1,
+                  padding: "4px 8px",
+                  cursor: upcomingDayIndex === 0 ? "default" : "pointer",
+                }}
+              >
+                ‹
+              </button>
+              <span
+                className="font-bold text-xs text-center"
+                style={{ color: "rgba(255,255,255,0.7)", letterSpacing: "2px" }}
+              >
+                {futureDates[upcomingDayIndex]
+                  ?.toLocaleDateString("es-AR", {
+                    timeZone: TZ,
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })
+                  .toUpperCase()}
+              </span>
+              <button
+                onClick={() => setUpcomingDayIndex((i) => Math.min(futureDates.length - 1, i + 1))}
+                disabled={upcomingDayIndex === futureDates.length - 1}
+                style={{
+                  color: upcomingDayIndex === futureDates.length - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.6)",
+                  fontSize: "18px",
+                  lineHeight: 1,
+                  padding: "4px 8px",
+                  cursor: upcomingDayIndex === futureDates.length - 1 ? "default" : "pointer",
+                }}
+              >
+                ›
+              </button>
+            </div>
+          )}
           <div className="px-4 pt-4 pb-4">
             {upcomingMatches.length === 0 ? (
               <EmptyState message="Ya jugaste todos los partidos disponibles." />

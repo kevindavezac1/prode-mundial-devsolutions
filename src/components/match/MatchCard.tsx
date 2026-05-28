@@ -49,7 +49,32 @@ function formatMatchTime(scheduled_at: string): string {
 
 // ─── State badge ──────────────────────────────────────────────────────────────
 
-function StateBadge({ state, time }: { state: MatchVisualState; time: string }) {
+const TZ = "America/Argentina/Buenos_Aires";
+
+function formatDateLabel(scheduledAt: string): string {
+  const scheduled = new Date(scheduledAt);
+  const now = new Date();
+  const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: TZ });
+  if (fmt(scheduled) === fmt(now)) return "HOY";
+  return scheduled
+    .toLocaleDateString("es-AR", {
+      timeZone: TZ,
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    })
+    .toUpperCase();
+}
+
+function StateBadge({
+  state,
+  time,
+  scheduledAt,
+}: {
+  state: MatchVisualState;
+  time: string;
+  scheduledAt: string;
+}) {
   if (state === "live") {
     return (
       <div className="flex items-center gap-1.5">
@@ -91,7 +116,7 @@ function StateBadge({ state, time }: { state: MatchVisualState; time: string }) 
       style={{ letterSpacing: "1.5px" }}
       className="text-[10px] font-bold text-white/50"
     >
-      HOY · {time}
+      {formatDateLabel(scheduledAt)} · {time}
     </span>
   );
 }
@@ -431,7 +456,7 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
 
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-4 pb-0">
-        <StateBadge state={state} time={time} />
+        <StateBadge state={state} time={time} scheduledAt={match.scheduled_at} />
         {match.group_name && <GroupBadge name={match.group_name} />}
       </div>
 

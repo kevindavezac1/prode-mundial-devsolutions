@@ -8,8 +8,10 @@ export async function updateDisplayName(
   displayName: string
 ): Promise<{ error?: string }> {
   const name = displayName.trim();
-  if (!name || name.length > 30) {
-    return { error: "Nombre inválido (máx. 30 caracteres)." };
+  if (!name) return { error: "El nombre no puede estar vacío." };
+  if (name.length > 30) return { error: "El nombre no puede superar los 30 caracteres." };
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9 .\-]+$/.test(name)) {
+    return { error: "El nombre solo puede contener letras, números, espacios, guiones y puntos." };
   }
 
   const supabase = await createClient();
