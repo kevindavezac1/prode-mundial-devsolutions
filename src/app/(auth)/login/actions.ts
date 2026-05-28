@@ -26,13 +26,18 @@ export async function login(input: LoginInput, redirectTo?: string) {
   redirect(destination);
 }
 
-export async function loginWithGoogle() {
+export async function loginWithGoogle(redirectTo?: string) {
   const supabase = await createClient();
+
+  const base = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`;
+  const callbackUrl =
+    redirectTo?.startsWith("/")
+      ? `${base}?next=${encodeURIComponent(redirectTo)}`
+      : base;
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
-    },
+    options: { redirectTo: callbackUrl },
   });
 
   if (error || !data.url) {

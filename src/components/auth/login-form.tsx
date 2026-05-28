@@ -29,7 +29,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 
   function handleGoogle() {
     startTransition(async () => {
-      const result = await loginWithGoogle();
+      const result = await loginWithGoogle(redirectTo);
       if (result?.error) setServerError(result.error);
     });
   }
