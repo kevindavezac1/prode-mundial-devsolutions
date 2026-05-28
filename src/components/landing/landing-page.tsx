@@ -35,48 +35,33 @@ export function LandingPage() {
     <main className="min-h-screen text-white overflow-x-hidden" style={{ background: "#02040a" }}>
 
       {/* ── HERO ────────────────────────────────────────── */}
-      <div className="relative min-h-screen flex flex-col">
+      <div className="relative min-h-screen overflow-hidden" style={{ background: "#02040a" }}>
 
-        {/* Capa 2 — Logo Mundial decorativo */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/2026_FIFA_World_Cup_emblem.svg/1200px-2026_FIFA_World_Cup_emblem.svg.png"
-          alt=""
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            bottom: "-40px",
-            right: "-60px",
-            width: "340px",
-            opacity: 0.12,
-            filter: "saturate(0.6)",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        />
 
-        {/* Capa 3 — Tinte celeste argentino */}
+        {/* Capa 1 — Overlay degradado: foto visible en ~50% superior, negro puro abajo */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "radial-gradient(ellipse at top left, rgba(116,172,223,0.12) 0%, transparent 60%)",
+            background: "linear-gradient(to bottom, rgba(2,4,10,0.05) 0%, rgba(2,4,10,0.25) 30%, rgba(2,4,10,0.7) 55%, #02040a 75%)",
             pointerEvents: "none",
+            zIndex: 1,
           }}
         />
 
-        {/* Capa 4 — Gradiente de profundidad */}
+        {/* Capa — Tinte celeste argentino */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(to bottom, transparent 0%, rgba(2,4,10,0.3) 50%, #02040a 100%)",
+            background: "radial-gradient(ellipse at top left, rgba(116,172,223,0.1) 0%, transparent 60%)",
             pointerEvents: "none",
+            zIndex: 1,
           }}
         />
 
-        {/* Capa 5 — Contenido */}
-        <div className="relative z-10 flex flex-col flex-1">
+        {/* Contenido */}
+        <div className="relative flex flex-col min-h-screen" style={{ zIndex: 10 }}>
 
           {/* Top bar */}
           <div className="px-5 pt-6 flex justify-between items-center">
@@ -99,67 +84,50 @@ export function LandingPage() {
             </Link>
           </div>
 
-          {/* Central — mobile: columna, desktop: dos columnas */}
-          <div className="px-6 pt-8 pb-0 flex-1 flex flex-col md:flex-row md:items-center md:gap-10 md:pt-16">
+          {/* Central — texto empujado abajo, foto respira arriba */}
+          <div className="flex-1 flex flex-col justify-end px-6 pb-4">
 
-            {/* RIGHT (trofeo) — primero en DOM para mobile order-first */}
-            <div className="order-first md:order-last md:w-2/5 flex items-center justify-center mb-6 md:mb-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/logo_mundial.webp"
-                alt="Copa del Mundo FIFA"
-                className="object-contain h-[150px] md:h-[220px] w-auto"
-                style={{
-                  mixBlendMode: "multiply",
-                  filter: "drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
-                }}
-              />
+            {/* Franja argentina */}
+            <div
+              className="rounded-full mb-5"
+              style={{
+                width: "56px",
+                height: "3px",
+                background: "linear-gradient(90deg, #74ACDF, white, #74ACDF)",
+              }}
+            />
+
+            {/* Label */}
+            <p
+              className="font-bold mb-4"
+              style={{ fontSize: "10px", color: "#74ACDF", letterSpacing: "3px" }}
+            >
+              MUNDIAL 2026 · USA · MÉXICO · CANADÁ
+            </p>
+
+            {/* Frase — max-w 58% para dejar la copa visible a la derecha */}
+            <div
+              className="font-display mb-5"
+              style={{ fontSize: "58px", lineHeight: 0.88, maxWidth: "58%" }}
+            >
+              <div style={{ color: "white" }}>GANALE A</div>
+              <div style={{ color: "#74ACDF" }}>TUS AMIGOS.</div>
+              <div style={{ color: "white" }}>PARTIDO A</div>
+              <div style={{ color: "#74ACDF" }}>PARTIDO.</div>
             </div>
 
-            {/* LEFT: texto */}
-            <div className="md:w-3/5">
-              {/* Franja argentina */}
-              <div
-                className="rounded-full mb-6"
-                style={{
-                  width: "64px",
-                  height: "3px",
-                  background: "linear-gradient(90deg, #74ACDF, white, #74ACDF)",
-                }}
-              />
-
-              {/* Label */}
-              <p
-                className="font-bold mb-4"
-                style={{ fontSize: "10px", color: "#74ACDF", letterSpacing: "3px" }}
-              >
-                MUNDIAL 2026 · USA · MÉXICO · CANADÁ
-              </p>
-
-              {/* Título */}
-              <div
-                className="font-display mb-5"
-                style={{ fontSize: "62px", lineHeight: 0.88 }}
-              >
-                <div style={{ color: "white" }}>GANALE A</div>
-                <div style={{ color: "#74ACDF" }}>TUS AMIGOS.</div>
-                <div style={{ color: "white" }}>PARTIDO A</div>
-                <div style={{ color: "#74ACDF" }}>PARTIDO.</div>
-              </div>
-
-              {/* Subtítulo */}
-              <p
-                className="text-sm leading-relaxed mb-6 md:mb-0"
-                style={{ color: "rgba(255,255,255,0.5)", maxWidth: "280px" }}
-              >
-                Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
-              </p>
-            </div>
+            {/* Subtítulo */}
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: "rgba(255,255,255,0.55)", maxWidth: "260px" }}
+            >
+              Predecí los 104 partidos. Creá tu liga. Demostrá que sabés más que todos.
+            </p>
 
           </div>
 
           {/* CTA zone */}
-          <div className="px-6 pb-12">
+          <div className="px-6 pb-10">
 
             {/* Botón Google */}
             <button
