@@ -2,10 +2,54 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { LeagueDetailView } from "@/components/leagues/league-detail";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 
-export const metadata: Metadata = { title: "Liga" };
+function adminClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const OG_IMAGE = `${SITE_URL}/logo_mundial.webp`;
+
+  const { data: league } = await adminClient()
+    .from("leagues")
+    .select("name")
+    .eq("id", params.id)
+    .maybeSingle();
+
+  const ogTitle = league
+    ? `${league.name} — Prode Mundial 2026`
+    : "Prode Mundial 2026";
+  const description =
+    "Unite a mi liga y competí conmigo en el Prode del Mundial 2026";
+
+  return {
+    title: league?.name ?? "Liga",
+    openGraph: {
+      title: ogTitle,
+      description,
+      url: `${SITE_URL}/leagues/${params.id}`,
+      type: "website",
+      images: [{ url: OG_IMAGE, width: 800, height: 800 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [OG_IMAGE],
+    },
+  };
+}
 
 export default async function LeaguePage({ params }: { params: { id: string } }) {
   const supabase = await createClient();

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,46 @@ function adminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { invite_code: string };
+}): Promise<Metadata> {
+  const code = params.invite_code.trim().toUpperCase();
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const OG_IMAGE = `${SITE_URL}/logo_mundial.webp`;
+
+  const { data: league } = await adminClient()
+    .from("leagues")
+    .select("name")
+    .eq("invite_code", code)
+    .maybeSingle();
+
+  const leagueName = league?.name;
+  const ogTitle = leagueName
+    ? `Te invitan a ${leagueName}`
+    : "Prode Mundial 2026";
+  const description =
+    "Aceptá la invitación y predecí los partidos del Mundial 2026 con tus amigos";
+
+  return {
+    title: leagueName ? `Te invitan a ${leagueName}` : "Prode Mundial 2026",
+    openGraph: {
+      title: ogTitle,
+      description,
+      url: `${SITE_URL}/join/${params.invite_code}`,
+      type: "website",
+      images: [{ url: OG_IMAGE, width: 800, height: 800 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [OG_IMAGE],
+    },
+  };
 }
 
 export default async function JoinPage({
