@@ -143,7 +143,7 @@ function GroupTable({ group, teams, qualifyingSet, tiedSet }: GroupTableProps) {
                       <FlagEmoji
                         code={team.code}
                         flagUrl={team.flag_url}
-                        className="w-4 h-4 rounded-sm object-cover shrink-0"
+                        className="w-5 h-5 rounded-full object-cover object-center shrink-0"
                         alt={team.name}
                       />
                       <span

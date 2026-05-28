@@ -235,12 +235,12 @@ function TeamColumn({
     <div className="flex-1 flex flex-col items-center gap-2">
       <div
         style={{ border: "1px solid rgba(255,255,255,0.09)" }}
-        className="w-14 h-14 rounded-full bg-gradient-to-br from-white/8 to-white/2 flex items-center justify-center"
+        className="w-14 h-14 rounded-full bg-gradient-to-br from-white/8 to-white/2 flex items-center justify-center overflow-hidden"
       >
         <FlagEmoji
           code={team.code}
           flagUrl={team.flag_url}
-          className="text-[32px]"
+          className="w-full h-full rounded-full object-cover object-center"
           alt={team.name}
         />
       </div>

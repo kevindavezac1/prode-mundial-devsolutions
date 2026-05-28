@@ -211,7 +211,7 @@ export function PredictionSheet({
                 <FlagEmoji
                   code={match.home_team.code}
                   flagUrl={match.home_team.flag_url}
-                  className="text-3xl"
+                  className="w-9 h-9 rounded-full object-cover object-center shrink-0"
                   alt={match.home_team.name}
                 />
                 <span
@@ -230,7 +230,7 @@ export function PredictionSheet({
                 <FlagEmoji
                   code={match.away_team.code}
                   flagUrl={match.away_team.flag_url}
-                  className="text-3xl"
+                  className="w-9 h-9 rounded-full object-cover object-center shrink-0"
                   alt={match.away_team.name}
                 />
                 <span
