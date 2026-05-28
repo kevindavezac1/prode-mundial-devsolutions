@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/supabase/auth";
 
 export async function DELETE(
@@ -53,5 +54,6 @@ export async function DELETE(
   const newCode = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
   await supabase.from("leagues").update({ invite_code: newCode }).eq("id", leagueId);
 
+  revalidatePath("/leagues");
   return NextResponse.json({ ok: true });
 }

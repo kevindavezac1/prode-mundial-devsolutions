@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/supabase/auth";
 
 export async function DELETE(
@@ -31,6 +32,7 @@ export async function DELETE(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  revalidatePath("/leagues");
   return NextResponse.json({ ok: true });
 }
 
