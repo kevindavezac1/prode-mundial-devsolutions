@@ -50,5 +50,9 @@ export async function DELETE(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true });
+  // Regenerar código de invitación para que el expulsado no pueda re-unirse con el link viejo
+  const newCode = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
+  await supabase.from("leagues").update({ invite_code: newCode }).eq("id", leagueId);
+
+  return NextResponse.json({ ok: true, invite_code: newCode });
 }

@@ -98,9 +98,10 @@ export function LeagueDetailView({ league, userId }: Props) {
   const [members, setMembers] = useState<LeagueMember[]>(league.members);
 
   const isOwner = league.owner_id === userId;
+  const [inviteCode, setInviteCode] = useState(league.invite_code);
 
   function getInviteLink() {
-    return `${window.location.origin}/join/${league.invite_code}`;
+    return `${window.location.origin}/join/${inviteCode}`;
   }
 
   async function copyLink() {
@@ -119,7 +120,7 @@ export function LeagueDetailView({ league, userId }: Props) {
   function confirmLeave() {
     setModal({
       title: "¿Salir de la liga?",
-      description: `Saldrás de "${league.name}". Podés volver a unirte con el código de invitación.`,
+      description: `Saldrás de "${league.name}". Esta acción no se puede deshacer.`,
       confirmLabel: "Salir",
       danger: true,
       onConfirm: async () => {
@@ -130,6 +131,7 @@ export function LeagueDetailView({ league, userId }: Props) {
           return;
         }
         toast.success("Saliste de la liga.");
+        router.refresh();
         router.push("/leagues");
       },
     });
@@ -151,6 +153,7 @@ export function LeagueDetailView({ league, userId }: Props) {
           return;
         }
         toast.success("Liga eliminada.");
+        router.refresh();
         router.push("/leagues");
       },
     });
@@ -175,6 +178,7 @@ export function LeagueDetailView({ league, userId }: Props) {
         }
         toast.success(`${member.display_name} fue expulsado.`);
         setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id));
+        if (body.invite_code) setInviteCode(body.invite_code);
       },
     });
   }
@@ -208,7 +212,7 @@ export function LeagueDetailView({ league, userId }: Props) {
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              {league.invite_code}
+              {inviteCode}
             </div>
             <button
               onClick={copyLink}
@@ -239,7 +243,7 @@ export function LeagueDetailView({ league, userId }: Props) {
           >
             {typeof window !== "undefined"
               ? `${window.location.origin}/join/${league.invite_code}`
-              : `…/join/${league.invite_code}`}
+              : `…/join/${inviteCode}`}
           </p>
         </div>
 
