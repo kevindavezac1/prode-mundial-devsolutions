@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { toast } from "sonner";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 
@@ -92,7 +92,6 @@ function ConfirmModal({
 // ─── Main view ─────────────────────────────────────────────────────────────────
 
 export function LeagueDetailView({ league, userId }: Props) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [members, setMembers] = useState<LeagueMember[]>(league.members);
@@ -131,8 +130,7 @@ export function LeagueDetailView({ league, userId }: Props) {
           return;
         }
         toast.success("Saliste de la liga.");
-        router.refresh();
-        router.push("/leagues");
+        window.location.href = "/leagues";
       },
     });
   }
@@ -153,8 +151,7 @@ export function LeagueDetailView({ league, userId }: Props) {
           return;
         }
         toast.success("Liga eliminada.");
-        router.refresh();
-        router.push("/leagues");
+        window.location.href = "/leagues";
       },
     });
   }
