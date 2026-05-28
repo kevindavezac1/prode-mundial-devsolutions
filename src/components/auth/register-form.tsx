@@ -10,7 +10,7 @@ import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 import { register } from "@/app/(auth)/register/actions";
 import { loginWithGoogle } from "@/app/(auth)/login/actions";
 
-export function RegisterForm() {
+export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
@@ -24,14 +24,14 @@ export function RegisterForm() {
   function onSubmit(data: RegisterInput) {
     setServerError(null);
     startTransition(async () => {
-      const result = await register(data);
+      const result = await register(data, redirectTo);
       if (result?.error) setServerError(result.error);
     });
   }
 
   function handleGoogle() {
     startGoogleTransition(async () => {
-      await loginWithGoogle();
+      await loginWithGoogle(redirectTo);
     });
   }
 

@@ -133,6 +133,17 @@ export function JoinLeagueClient({ league, inviteCode, isLoggedIn }: Props) {
                 iniciar sesión con email
               </Link>
             </p>
+
+            <p className="text-center text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+              ¿No tenés cuenta?{" "}
+              <Link
+                href={`/register?redirect=/join/${inviteCode}`}
+                className="underline underline-offset-2"
+                style={{ color: "rgba(255,255,255,0.5)" }}
+              >
+                Registrate
+              </Link>
+            </p>
           </div>
         </div>
       </main>

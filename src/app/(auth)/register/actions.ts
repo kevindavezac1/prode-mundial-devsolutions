@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
-export async function register(input: RegisterInput) {
+export async function register(input: RegisterInput, redirectTo?: string) {
   const parsed = registerSchema.safeParse(input);
   if (!parsed.success) {
     return { error: "Datos inválidos." };
@@ -26,5 +26,8 @@ export async function register(input: RegisterInput) {
     return { error: "Error al crear la cuenta. Intentá de nuevo." };
   }
 
-  redirect("/login?registered=true");
+  const loginUrl = redirectTo?.startsWith("/")
+    ? `/login?registered=true&redirect=${encodeURIComponent(redirectTo)}`
+    : "/login?registered=true";
+  redirect(loginUrl);
 }
