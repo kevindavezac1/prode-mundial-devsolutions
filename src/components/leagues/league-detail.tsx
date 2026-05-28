@@ -240,41 +240,36 @@ export function LeagueDetailView({ league, userId }: Props) {
             </p>
             {editingName ? (
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    maxLength={50}
-                    disabled={savingName}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveName();
-                      if (e.key === "Escape") cancelEditName();
-                    }}
-                    className="flex-1 px-3 py-2 rounded-xl text-base font-bold text-white focus:outline-none disabled:opacity-50"
-                    style={{
-                      background: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.18)",
-                    }}
-                  />
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  maxLength={50}
+                  disabled={savingName}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveName();
+                    if (e.key === "Escape") cancelEditName();
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-base font-bold text-white focus:outline-none disabled:opacity-50"
+                  style={{
+                    background: "rgba(255,255,255,0.07)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                  }}
+                />
+                <div className="flex gap-2">
                   <button
                     onClick={saveName}
                     disabled={savingName}
-                    className="px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-50 shrink-0"
-                    style={{
-                      background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-                    }}
+                    className="flex-1 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-50"
+                    style={{ background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)" }}
                   >
                     {savingName ? "…" : "Guardar"}
                   </button>
                   <button
                     onClick={cancelEditName}
                     disabled={savingName}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold shrink-0 disabled:opacity-50"
-                    style={{
-                      background: "rgba(255,255,255,0.07)",
-                      color: "rgba(255,255,255,0.6)",
-                    }}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-50"
+                    style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)" }}
                   >
                     Cancelar
                   </button>
