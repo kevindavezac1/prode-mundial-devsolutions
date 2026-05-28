@@ -12,6 +12,7 @@ import { loginWithGoogle } from "@/app/(auth)/login/actions";
 
 export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
 
@@ -25,7 +26,12 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
     setServerError(null);
     startTransition(async () => {
       const result = await register(data, redirectTo);
-      if (result?.error) setServerError(result.error);
+      if (!result) return;
+      if (result.error) {
+        setServerError(result.error);
+      } else if (result.success) {
+        setRegisteredEmail(result.email ?? null);
+      }
     });
   }
 
@@ -36,6 +42,45 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   }
 
   const anyPending = isPending || isGooglePending;
+
+  if (registeredEmail) {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="text-5xl">📧</div>
+        <div className="space-y-3">
+          <h1 className="text-2xl font-bold text-white">¡Revisá tu email!</h1>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Te enviamos un link de verificación a
+          </p>
+          <p
+            className="font-semibold text-sm px-3 py-1.5 rounded-lg inline-block"
+            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.9)" }}
+          >
+            {registeredEmail}
+          </p>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Hacé click en el link para activar tu cuenta.
+          </p>
+        </div>
+        <div
+          className="rounded-xl p-4 text-xs text-left space-y-1"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+        >
+          <p style={{ color: "rgba(255,255,255,0.5)" }}>¿No llegó el email?</p>
+          <p style={{ color: "rgba(255,255,255,0.3)" }}>
+            Revisá la carpeta de spam o esperá unos minutos.
+          </p>
+        </div>
+        <Link
+          href="/login"
+          className="block text-sm font-semibold hover:underline"
+          style={{ color: "#E4002B" }}
+        >
+          Ir al inicio de sesión →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

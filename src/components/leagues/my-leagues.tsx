@@ -158,11 +158,14 @@ export function MyLeagues({ leagues, userId }: Props) {
                 : val;
               setCode(extracted.toUpperCase());
             }}
-            placeholder="Ej: AB12CD34"
+            placeholder="Ej: ABC12345 o pegá el link completo"
             disabled={isPending}
             className={`${inputClass} font-display text-xl tracking-widest`}
             style={inputStyle}
           />
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Pegá el link de invitación o el código de 8 caracteres
+          </p>
           <button
             type="submit"
             disabled={isPending || code.trim().length < 4}
