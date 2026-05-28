@@ -85,7 +85,7 @@ export function LandingPage() {
           </div>
 
           {/* Central — texto empujado abajo, foto respira arriba */}
-          <div className="flex-1 flex flex-col justify-end px-6 pb-4">
+          <div className="flex-1 flex flex-col justify-center px-6 pb-4">
 
             {/* Franja argentina */}
             <div
