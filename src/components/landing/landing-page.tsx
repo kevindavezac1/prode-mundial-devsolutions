@@ -13,7 +13,7 @@ const steps = [
   {
     n: "02",
     title: "Sumá puntos por aciertos",
-    desc: "Exacto = 3 pts · Ganador correcto = 1 pt. Cada predicción cuenta.",
+    desc: "Exacto = 300 puntos · Ganador correcto = 100 puntos. Cada predicción cuenta.",
   },
   {
     n: "03",
