@@ -161,7 +161,7 @@ export function LeagueDetailView({ league, userId }: Props) {
   function confirmKick(member: LeagueMember) {
     setModal({
       title: `¿Expulsar a ${member.display_name}?`,
-      description: "El jugador podrá volver a unirse con el código de invitación.",
+      description: "El código de invitación se regenerará automáticamente.",
       confirmLabel: "Expulsar",
       danger: true,
       onConfirm: async () => {
