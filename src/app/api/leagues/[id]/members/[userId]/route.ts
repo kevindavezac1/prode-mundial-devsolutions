@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string; userId: string } }
 ) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`DELETE:/api/leagues/members:${ip}`, 10)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
+  }
+
   const { user, supabase } = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
   const { id: leagueId, userId: targetUserId } = params;
 
-  // Obtener liga y verificar que el caller es owner
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
     .select("id, owner_id")
@@ -25,12 +30,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Solo el creador puede expulsar miembros." }, { status: 403 });
   }
 
-  // Owner no puede expulsarse a sí mismo
   if (targetUserId === user.id) {
     return NextResponse.json({ error: "No podés expulsarte a vos mismo." }, { status: 400 });
   }
 
-  // Verificar que el target es miembro
   const { data: membership } = await supabase
     .from("league_members")
     .select("user_id")
@@ -48,9 +51,11 @@ export async function DELETE(
     .eq("league_id", leagueId)
     .eq("user_id", targetUserId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[DELETE /api/leagues/:id/members/:userId]", error);
+    return NextResponse.json({ error: "Error al expulsar al miembro." }, { status: 500 });
+  }
 
-  // Regenerar código de invitación para que el expulsado no pueda re-unirse con el link viejo
   const newCode = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
   await supabase.from("leagues").update({ invite_code: newCode }).eq("id", leagueId);
 

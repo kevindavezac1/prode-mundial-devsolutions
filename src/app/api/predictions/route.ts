@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { PredictionsMap } from "@/types/matches";
 
 export async function GET(request: Request) {
@@ -29,6 +30,12 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  // Rate limit: 30 predicciones por minuto por IP
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`POST:/api/predictions:${ip}`, 30)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
+  }
+
   const { user, supabase } = await getAuthUser(request);
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
@@ -92,6 +99,7 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
+    console.error("[POST /api/predictions]", error);
     return NextResponse.json({ error: "Error al guardar la predicción." }, { status: 500 });
   }
 

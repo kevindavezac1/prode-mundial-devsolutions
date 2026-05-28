@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`DELETE:/api/leagues/${params.id}:${ip}`, 10)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
+  }
+
   const { user, supabase } = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
@@ -30,7 +36,10 @@ export async function DELETE(
     .delete()
     .eq("id", leagueId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[DELETE /api/leagues/:id]", error);
+    return NextResponse.json({ error: "Error al eliminar la liga." }, { status: 500 });
+  }
 
   revalidatePath("/leagues");
   return NextResponse.json({ ok: true });

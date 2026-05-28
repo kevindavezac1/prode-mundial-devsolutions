@@ -14,7 +14,10 @@ export async function GET() {
     .order("exact_predictions", { ascending: false })
     .limit(100);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[GET /api/rankings]", error);
+    return NextResponse.json({ error: "Error al cargar los rankings." }, { status: 500 });
+  }
 
   return NextResponse.json({ data: data ?? [] });
 }

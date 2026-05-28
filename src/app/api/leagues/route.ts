@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const { user, supabase } = await getAuthUser(request);
@@ -10,7 +11,10 @@ export async function GET(request: Request) {
     .select("league_id, leagues(id, name, invite_code, owner_id, max_members, is_public, created_at)")
     .eq("user_id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[GET /api/leagues]", error);
+    return NextResponse.json({ error: "Error al cargar las ligas." }, { status: 500 });
+  }
 
   const leagues = (memberships ?? []).map((m) => m.leagues).filter(Boolean);
   const leagueIds = leagues.map((l) => (l as { id: string }).id);
@@ -32,6 +36,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Rate limit: 10 ligas por minuto por IP
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`POST:/api/leagues:${ip}`, 10)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
+  }
+
   try {
     const { user, supabase } = await getAuthUser(request);
     if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
@@ -49,8 +59,8 @@ export async function POST(request: Request) {
       .single();
 
     if (leagueError) {
-      console.error("[POST /api/leagues] insert leagues error:", JSON.stringify(leagueError, null, 2));
-      return NextResponse.json({ error: leagueError.message, code: leagueError.code }, { status: 500 });
+      console.error("[POST /api/leagues] insert leagues:", leagueError);
+      return NextResponse.json({ error: "Error al crear la liga." }, { status: 500 });
     }
 
     const { error: memberError } = await supabase
@@ -58,12 +68,12 @@ export async function POST(request: Request) {
       .insert({ league_id: league.id, user_id: user.id });
 
     if (memberError) {
-      console.error("[POST /api/leagues] insert league_members error:", JSON.stringify(memberError, null, 2));
+      console.error("[POST /api/leagues] insert league_members:", memberError);
     }
 
     return NextResponse.json({ data: league }, { status: 201 });
   } catch (err) {
-    console.error("[POST /api/leagues] unexpected error:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error("[POST /api/leagues] unexpected:", err);
+    return NextResponse.json({ error: "Error interno." }, { status: 500 });
   }
 }

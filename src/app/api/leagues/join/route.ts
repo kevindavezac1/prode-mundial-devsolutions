@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Service role bypasses RLS — used only for invite_code lookup on private leagues
 function adminClient() {
@@ -11,12 +12,24 @@ function adminClient() {
 }
 
 export async function POST(request: Request) {
+  // Rate limit: 10 intentos por minuto por IP
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`POST:/api/leagues/join:${ip}`, 10)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
+  }
+
   const { user, supabase } = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  const invite_code = typeof body.invite_code === "string" ? body.invite_code.trim().toUpperCase() : "";
-  if (!invite_code) return NextResponse.json({ error: "Código requerido." }, { status: 400 });
+  const raw = typeof body.invite_code === "string" ? body.invite_code.trim().toUpperCase() : "";
+
+  // Validar: requerido, máximo 8 caracteres (códigos son siempre 8)
+  if (!raw || raw.length > 8) {
+    return NextResponse.json({ error: "Código de invitación inválido." }, { status: 400 });
+  }
+
+  const invite_code = raw;
 
   // Must use admin client: user is not yet a member, so RLS blocks the lookup
   const { data: league } = await adminClient()
@@ -49,7 +62,10 @@ export async function POST(request: Request) {
     .from("league_members")
     .insert({ league_id: league.id, user_id: user.id });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[POST /api/leagues/join]", error);
+    return NextResponse.json({ error: "Error al unirse a la liga." }, { status: 500 });
+  }
 
   return NextResponse.json({ data: { league_id: league.id } }, { status: 201 });
 }
