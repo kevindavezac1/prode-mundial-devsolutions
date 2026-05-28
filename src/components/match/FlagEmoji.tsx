@@ -61,7 +61,7 @@ export function FlagEmoji({ code, flagUrl, className, alt }: Props) {
 
   const flagCdnCode = code ? getFlagCdnCode(code) : null;
   const flagCdnUrl = flagCdnCode
-    ? `https://flagcdn.com/w40/${flagCdnCode}.png`
+    ? `https://flagcdn.com/w80/${flagCdnCode}.png`
     : null;
 
   // Priority 1: DB flag URL
