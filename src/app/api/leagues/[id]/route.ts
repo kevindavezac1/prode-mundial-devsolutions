@@ -1,6 +1,39 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/auth";
 
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const { user, supabase } = await getAuthUser(request);
+  if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+
+  const leagueId = params.id;
+
+  const { data: league, error: leagueError } = await supabase
+    .from("leagues")
+    .select("id, owner_id")
+    .eq("id", leagueId)
+    .single();
+
+  if (leagueError || !league) {
+    return NextResponse.json({ error: "Liga no encontrada." }, { status: 404 });
+  }
+
+  if (league.owner_id !== user.id) {
+    return NextResponse.json({ error: "Solo el creador puede eliminar la liga." }, { status: 403 });
+  }
+
+  const { error } = await supabase
+    .from("leagues")
+    .delete()
+    .eq("id", leagueId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

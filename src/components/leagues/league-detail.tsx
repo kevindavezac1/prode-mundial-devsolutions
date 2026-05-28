@@ -1,13 +1,103 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 
 type Props = { league: LeagueDetail; userId: string };
 
+// ─── Confirm modal ─────────────────────────────────────────────────────────────
+
+type ModalState = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  danger?: boolean;
+  onConfirm: () => Promise<void>;
+} | null;
+
+function ConfirmModal({
+  modal,
+  onClose,
+}: {
+  modal: NonNullable<ModalState>;
+  onClose: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      await modal.onConfirm();
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.7)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl p-5 space-y-4"
+        style={{
+          background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div>
+          <p className="font-bold text-white text-base">{modal.title}</p>
+          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+            {modal.description}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 h-11 rounded-xl text-sm font-semibold"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 h-11 rounded-xl text-sm font-bold"
+            style={{
+              background: modal.danger
+                ? "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)"
+                : "rgba(255,255,255,0.1)",
+              color: "white",
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            {loading ? "…" : modal.confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main view ─────────────────────────────────────────────────────────────────
+
 export function LeagueDetailView({ league, userId }: Props) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [modal, setModal] = useState<ModalState>(null);
+  const [members, setMembers] = useState<LeagueMember[]>(league.members);
+
+  const isOwner = league.owner_id === userId;
 
   function getInviteLink() {
     return `${window.location.origin}/join/${league.invite_code}`;
@@ -24,129 +114,241 @@ export function LeagueDetailView({ league, userId }: Props) {
     }
   }
 
+  // ── Leave league ──────────────────────────────────────────────────────────
+
+  function confirmLeave() {
+    setModal({
+      title: "¿Salir de la liga?",
+      description: `Saldrás de "${league.name}". Podés volver a unirte con el código de invitación.`,
+      confirmLabel: "Salir",
+      danger: true,
+      onConfirm: async () => {
+        const res = await fetch(`/api/leagues/${league.id}/leave`, { method: "DELETE" });
+        const body = await res.json();
+        if (!res.ok) {
+          toast.error(body.error ?? "Error al salir de la liga.");
+          return;
+        }
+        toast.success("Saliste de la liga.");
+        router.push("/leagues");
+      },
+    });
+  }
+
+  // ── Delete league ─────────────────────────────────────────────────────────
+
+  function confirmDeleteLeague() {
+    setModal({
+      title: `¿Eliminar "${league.name}"?`,
+      description: "Esta acción eliminará la liga y todos sus datos. No se puede deshacer.",
+      confirmLabel: "Eliminar liga",
+      danger: true,
+      onConfirm: async () => {
+        const res = await fetch(`/api/leagues/${league.id}`, { method: "DELETE" });
+        const body = await res.json();
+        if (!res.ok) {
+          toast.error(body.error ?? "Error al eliminar la liga.");
+          return;
+        }
+        toast.success("Liga eliminada.");
+        router.push("/leagues");
+      },
+    });
+  }
+
+  // ── Kick member ───────────────────────────────────────────────────────────
+
+  function confirmKick(member: LeagueMember) {
+    setModal({
+      title: `¿Expulsar a ${member.display_name}?`,
+      description: "El jugador podrá volver a unirse con el código de invitación.",
+      confirmLabel: "Expulsar",
+      danger: true,
+      onConfirm: async () => {
+        const res = await fetch(`/api/leagues/${league.id}/members/${member.user_id}`, {
+          method: "DELETE",
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          toast.error(body.error ?? "Error al expulsar al miembro.");
+          return;
+        }
+        toast.success(`${member.display_name} fue expulsado.`);
+        setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id));
+      },
+    });
+  }
+
   return (
-    <div className="space-y-5">
+    <>
+      {modal && <ConfirmModal modal={modal} onClose={() => setModal(null)} />}
 
-      {/* Invite section */}
-      <div
-        className="rounded-2xl px-4 py-4 space-y-3"
-        style={{
-          background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
-          border: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <p
-          className="text-[10px] font-bold"
-          style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+      <div className="space-y-5">
+
+        {/* Invite section */}
+        <div
+          className="rounded-2xl px-4 py-4 space-y-3"
+          style={{
+            background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
         >
-          INVITAR AMIGOS
-        </p>
+          <p
+            className="text-[10px] font-bold"
+            style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+          >
+            INVITAR AMIGOS
+          </p>
 
-        <div className="flex items-center gap-2">
-          <div
-            className="flex-1 px-3 py-2 rounded-xl font-display text-lg text-white tracking-widest truncate"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            {league.invite_code}
+          <div className="flex items-center gap-2">
+            <div
+              className="flex-1 px-3 py-2 rounded-xl font-display text-lg text-white tracking-widest truncate"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {league.invite_code}
+            </div>
+            <button
+              onClick={copyLink}
+              className="px-4 py-2 rounded-xl text-[11px] font-bold transition-all active:scale-95"
+              style={
+                copied
+                  ? {
+                      background: "rgba(10,110,62,0.2)",
+                      border: "1px solid rgba(10,110,62,0.4)",
+                      color: "#4ade80",
+                      letterSpacing: "1px",
+                    }
+                  : {
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      color: "rgba(255,255,255,0.7)",
+                      letterSpacing: "1px",
+                    }
+              }
+            >
+              {copied ? "✓ COPIADO" : "COPIAR"}
+            </button>
           </div>
-          <button
-            onClick={copyLink}
-            className="px-4 py-2 rounded-xl text-[11px] font-bold transition-all active:scale-95"
-            style={
-              copied
-                ? {
-                    background: "rgba(10,110,62,0.2)",
-                    border: "1px solid rgba(10,110,62,0.4)",
-                    color: "#4ade80",
-                    letterSpacing: "1px",
-                  }
-                : {
-                    background: "rgba(255,255,255,0.07)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.7)",
-                    letterSpacing: "1px",
-                  }
-            }
+
+          <p
+            className="text-[10px] break-all"
+            style={{ color: "rgba(255,255,255,0.2)" }}
           >
-            {copied ? "✓ COPIADO" : "COPIAR"}
-          </button>
+            {typeof window !== "undefined"
+              ? `${window.location.origin}/join/${league.invite_code}`
+              : `…/join/${league.invite_code}`}
+          </p>
         </div>
 
-        <p
-          className="text-[10px] break-all"
-          style={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          {typeof window !== "undefined"
-            ? `${window.location.origin}/join/${league.invite_code}`
-            : `…/join/${league.invite_code}`}
-        </p>
-      </div>
-
-      {/* Leaderboard */}
-      <div className="space-y-2">
-        <p
-          className="text-[10px] font-bold px-1"
-          style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
-        >
-          TABLA DE POSICIONES
-        </p>
-
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ border: "1px solid rgba(255,255,255,0.07)" }}
-        >
-          {/* Header row */}
-          <div
-            className="grid grid-cols-[2rem_1fr_4rem] gap-2 px-4 py-2"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
-            }}
+        {/* Leaderboard */}
+        <div className="space-y-2">
+          <p
+            className="text-[10px] font-bold px-1"
+            style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
           >
-            <span className="text-[10px] font-bold text-center" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>#</span>
-            <span className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>JUGADOR</span>
-            <span className="text-[10px] font-bold text-right" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>PTS</span>
-          </div>
+            TABLA DE POSICIONES
+          </p>
 
-          {league.members.length === 0 ? (
-            <p className="text-sm text-center py-8" style={{ color: "rgba(255,255,255,0.3)" }}>
-              Sin miembros.
-            </p>
-          ) : (
-            league.members.map((member, idx) => (
-              <MemberRow
-                key={member.user_id}
-                member={member}
-                position={idx + 1}
-                isMe={member.user_id === userId}
-              />
-            ))
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            {/* Header row */}
+            <div
+              className="grid gap-2 px-4 py-2"
+              style={{
+                gridTemplateColumns: isOwner ? "2rem 1fr 4rem 4rem" : "2rem 1fr 4rem",
+                background: "rgba(255,255,255,0.03)",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <span className="text-[10px] font-bold text-center" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>#</span>
+              <span className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>JUGADOR</span>
+              <span className="text-[10px] font-bold text-right" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>PTS</span>
+              {isOwner && <span />}
+            </div>
+
+            {members.length === 0 ? (
+              <p className="text-sm text-center py-8" style={{ color: "rgba(255,255,255,0.3)" }}>
+                Sin miembros.
+              </p>
+            ) : (
+              members.map((member, idx) => (
+                <MemberRow
+                  key={member.user_id}
+                  member={member}
+                  position={idx + 1}
+                  isMe={member.user_id === userId}
+                  isOwner={isOwner}
+                  onKick={() => confirmKick(member)}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="space-y-2 pt-2">
+          {!isOwner && (
+            <button
+              onClick={confirmLeave}
+              className="w-full h-11 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+              style={{
+                background: "rgba(228,0,43,0.08)",
+                border: "1px solid rgba(228,0,43,0.2)",
+                color: "rgba(228,0,43,0.8)",
+              }}
+            >
+              Salir de la liga
+            </button>
+          )}
+
+          {isOwner && (
+            <button
+              onClick={confirmDeleteLeague}
+              className="w-full h-11 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+              style={{
+                background: "rgba(228,0,43,0.08)",
+                border: "1px solid rgba(228,0,43,0.2)",
+                color: "rgba(228,0,43,0.8)",
+              }}
+            >
+              Eliminar liga
+            </button>
           )}
         </div>
+
       </div>
-    </div>
+    </>
   );
 }
+
+// ─── Member row ────────────────────────────────────────────────────────────────
 
 function MemberRow({
   member,
   position,
   isMe,
+  isOwner,
+  onKick,
 }: {
   member: LeagueMember;
   position: number;
   isMe: boolean;
+  isOwner: boolean;
+  onKick: () => void;
 }) {
   const medal =
     position === 1 ? "🥇" : position === 2 ? "🥈" : position === 3 ? "🥉" : null;
 
   return (
     <div
-      className="grid grid-cols-[2rem_1fr_4rem] gap-2 px-4 py-3 items-center"
+      className="grid gap-2 px-4 py-3 items-center"
       style={{
+        gridTemplateColumns: isOwner ? "2rem 1fr 4rem 4rem" : "2rem 1fr 4rem",
         borderBottom: "1px solid rgba(255,255,255,0.04)",
         background: isMe ? "rgba(228,0,43,0.06)" : "transparent",
       }}
@@ -179,6 +381,25 @@ function MemberRow({
         </span>
         <span className="text-[10px] ml-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>pts</span>
       </div>
+
+      {isOwner && (
+        <div className="flex justify-end">
+          {!isMe && (
+            <button
+              onClick={onKick}
+              className="text-[10px] font-bold rounded-lg px-2 py-1 transition-all active:scale-95"
+              style={{
+                background: "rgba(228,0,43,0.1)",
+                border: "1px solid rgba(228,0,43,0.2)",
+                color: "rgba(228,0,43,0.7)",
+                letterSpacing: "0.5px",
+              }}
+            >
+              EXPULSAR
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
