@@ -45,6 +45,66 @@ export async function DELETE(
   return NextResponse.json({ ok: true });
 }
 
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`PATCH:/api/leagues/${params.id}:${ip}`, 20)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
+  const { user, supabase } = await getAuthUser(request);
+  if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
+  }
+
+  const { name } = body as { name?: string };
+  if (typeof name !== "string" || name.trim().length < 3 || name.trim().length > 50) {
+    return NextResponse.json(
+      { error: "El nombre debe tener entre 3 y 50 caracteres." },
+      { status: 400 }
+    );
+  }
+
+  const trimmed = name.trim();
+
+  const { data: league, error: leagueError } = await supabase
+    .from("leagues")
+    .select("id, owner_id")
+    .eq("id", params.id)
+    .single();
+
+  if (leagueError || !league) {
+    return NextResponse.json({ error: "Liga no encontrada." }, { status: 404 });
+  }
+
+  if (league.owner_id !== user.id) {
+    return NextResponse.json({ error: "Solo el creador puede editar la liga." }, { status: 403 });
+  }
+
+  const { data: updated, error } = await supabase
+    .from("leagues")
+    .update({ name: trimmed })
+    .eq("id", params.id)
+    .select("id, name")
+    .single();
+
+  if (error) {
+    console.error("[PATCH /api/leagues/:id]", error);
+    return NextResponse.json({ error: "Error al actualizar la liga." }, { status: 500 });
+  }
+
+  revalidatePath(`/leagues/${params.id}`);
+  revalidatePath("/leagues");
+  return NextResponse.json({ data: updated });
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

@@ -99,6 +99,43 @@ export function LeagueDetailView({ league, userId }: Props) {
   const isOwner = league.owner_id === userId;
   const [inviteCode, setInviteCode] = useState(league.invite_code);
 
+  // ── Edit league name ──────────────────────────────────────────────────────
+  const [leagueName, setLeagueName] = useState(league.name);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(league.name);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  async function saveName() {
+    const trimmed = nameInput.trim();
+    if (trimmed.length < 3 || trimmed.length > 50) {
+      setNameError("Entre 3 y 50 caracteres.");
+      return;
+    }
+    setSavingName(true);
+    setNameError(null);
+    const res = await fetch(`/api/leagues/${league.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    setSavingName(false);
+    if (!res.ok) {
+      const body = await res.json();
+      setNameError(body.error ?? "Error al guardar.");
+      return;
+    }
+    setLeagueName(trimmed);
+    setEditingName(false);
+    toast.success("Nombre actualizado.");
+  }
+
+  function cancelEditName() {
+    setEditingName(false);
+    setNameInput(leagueName);
+    setNameError(null);
+  }
+
   function getInviteLink() {
     return `${window.location.origin}/join/${inviteCode}`;
   }
@@ -185,6 +222,82 @@ export function LeagueDetailView({ league, userId }: Props) {
       {modal && <ConfirmModal modal={modal} onClose={() => setModal(null)} />}
 
       <div className="space-y-5">
+
+        {/* League name — editable for owner */}
+        {isOwner && (
+          <div
+            className="rounded-2xl px-4 py-3 space-y-2"
+            style={{
+              background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <p
+              className="text-[10px] font-bold"
+              style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+            >
+              NOMBRE DE LA LIGA
+            </p>
+            {editingName ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    maxLength={50}
+                    disabled={savingName}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveName();
+                      if (e.key === "Escape") cancelEditName();
+                    }}
+                    className="flex-1 px-3 py-2 rounded-xl text-base font-bold text-white focus:outline-none disabled:opacity-50"
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                    }}
+                  />
+                  <button
+                    onClick={saveName}
+                    disabled={savingName}
+                    className="px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+                    }}
+                  >
+                    {savingName ? "…" : "Guardar"}
+                  </button>
+                  <button
+                    onClick={cancelEditName}
+                    disabled={savingName}
+                    className="px-3 py-2 rounded-xl text-xs font-semibold shrink-0 disabled:opacity-50"
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+                {nameError && (
+                  <p className="text-xs" style={{ color: "#f87171" }}>{nameError}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold text-white flex-1 truncate">{leagueName}</span>
+                <button
+                  onClick={() => { setEditingName(true); setNameInput(leagueName); }}
+                  className="text-base shrink-0 transition-opacity"
+                  style={{ opacity: 0.45 }}
+                  title="Editar nombre"
+                >
+                  ✏️
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Invite section */}
         <div
