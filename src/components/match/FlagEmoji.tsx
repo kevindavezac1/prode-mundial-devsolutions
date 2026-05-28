@@ -72,6 +72,7 @@ export function FlagEmoji({ code, flagUrl, className, alt }: Props) {
         src={flagUrl}
         alt={alt ?? code ?? "flag"}
         className={className}
+        style={{ width: 28, height: 20, borderRadius: 4, objectFit: "cover", boxShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
         onError={() => setFlagUrlError(true)}
       />
     );
@@ -85,6 +86,7 @@ export function FlagEmoji({ code, flagUrl, className, alt }: Props) {
         src={flagCdnUrl}
         alt={alt ?? code ?? "flag"}
         className={className}
+        style={{ width: 28, height: 20, borderRadius: 4, objectFit: "cover", boxShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
         onError={() => setFlagCdnError(true)}
       />
     );
