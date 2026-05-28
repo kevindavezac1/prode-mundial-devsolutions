@@ -4,8 +4,10 @@ import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { MatchCard } from "@/components/match/MatchCard";
 import { PredictionSheet } from "@/components/match/PredictionSheet";
+import { TeamPicker } from "@/components/dashboard/TeamPicker";
+import { FlagEmoji } from "@/components/match/FlagEmoji";
 import { isFinished, isLive, getMatchState } from "@/lib/match-helpers";
-import type { MatchWithTeams, Prediction } from "@/types/matches";
+import type { MatchWithTeams, Prediction, Team } from "@/types/matches";
 import type { PredictionSheetMatch, PredictionSheetExisting } from "@/components/match/PredictionSheet";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -102,6 +104,9 @@ export function DashboardFeed({ displayName }: Props) {
     prediction: PredictionSheetExisting;
   } | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [teamPickerOpen, setTeamPickerOpen] = useState(false);
+  const [teamSearch, setTeamSearch] = useState("");
 
   const matches = response?.data ?? [];
   const now = useMemo(() => new Date(), []);
@@ -157,6 +162,33 @@ export function DashboardFeed({ displayName }: Props) {
     const pending = day.filter((m) => !isFinished(m) && !isLive(m, now)).sort(byTime);
     return [...finished, ...live, ...pending];
   }, [matches, selectedDate, now]);
+
+  // ─── All unique teams extracted from feed ────────────────────────────────
+
+  const allTeams = useMemo(() => {
+    const map = new Map<number, Team>();
+    for (const m of matches) {
+      map.set(m.home_team.id, m.home_team);
+      map.set(m.away_team.id, m.away_team);
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [matches]);
+
+  // ─── Matches for selected team ────────────────────────────────────────────
+
+  const matchesForTeam = useMemo(() => {
+    if (!selectedTeam) return [];
+    return [...matches]
+      .filter(
+        (m) =>
+          m.home_team.id === selectedTeam.id ||
+          m.away_team.id === selectedTeam.id
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+      );
+  }, [matches, selectedTeam]);
 
   // ─── Greeting: pending count always for today ────────────────────────────
 
@@ -271,8 +303,49 @@ export function DashboardFeed({ displayName }: Props) {
         </p>
       </div>
 
+      {/* Team filter bar */}
+      <div
+        className="px-4 py-2.5"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {selectedTeam ? (
+          <div className="flex items-center gap-2">
+            <FlagEmoji
+              code={selectedTeam.code}
+              flagUrl={selectedTeam.flag_url}
+              className="w-6 h-6 rounded-full object-cover object-center shrink-0"
+              alt={selectedTeam.name}
+            />
+            <span className="text-sm font-semibold text-white flex-1 truncate">
+              {selectedTeam.name}
+            </span>
+            <button
+              onClick={() => setSelectedTeam(null)}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg shrink-0"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}
+            >
+              ✕ Quitar filtro
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setTeamPickerOpen(true)}
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl w-full transition-all active:scale-[0.98]"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "rgba(255,255,255,0.45)",
+            }}
+          >
+            <span>⚽</span>
+            <span className="flex-1 text-left">Todos los equipos</span>
+            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "11px" }}>▾</span>
+          </button>
+        )}
+      </div>
+
       {/* Date navigator */}
-      {allDates.length > 0 && (
+      {!selectedTeam && allDates.length > 0 && (
         <div
           className="flex items-center justify-between px-4 py-3"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
@@ -335,12 +408,52 @@ export function DashboardFeed({ displayName }: Props) {
 
       {/* Match list */}
       <div className="px-4 pt-4 pb-4">
-        {matchesForDay.length === 0 ? (
+        {selectedTeam ? (
+          <>
+            <div className="flex items-center gap-2.5 mb-4">
+              <FlagEmoji
+                code={selectedTeam.code}
+                flagUrl={selectedTeam.flag_url}
+                className="w-9 h-9 rounded-full object-cover object-center shrink-0"
+                alt={selectedTeam.name}
+              />
+              <div>
+                <p className="text-sm font-bold text-white">Partidos de {selectedTeam.name}</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  {matchesForTeam.length} partido{matchesForTeam.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+            {matchesForTeam.length === 0 ? (
+              <EmptyState message="No hay partidos para este equipo." />
+            ) : (
+              renderMatchList(matchesForTeam)
+            )}
+          </>
+        ) : matchesForDay.length === 0 ? (
           <EmptyState message="No hay partidos este día." />
         ) : (
           renderMatchList(matchesForDay)
         )}
       </div>
+
+      {/* Team picker overlay */}
+      {teamPickerOpen && (
+        <TeamPicker
+          teams={allTeams}
+          search={teamSearch}
+          onSearchChange={setTeamSearch}
+          onSelect={(team) => {
+            setSelectedTeam(team);
+            setTeamPickerOpen(false);
+            setTeamSearch("");
+          }}
+          onClose={() => {
+            setTeamPickerOpen(false);
+            setTeamSearch("");
+          }}
+        />
+      )}
 
       {/* Prediction sheet */}
       <PredictionSheet
