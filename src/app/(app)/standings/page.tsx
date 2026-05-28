@@ -19,6 +19,13 @@ type StatsMap = Record<number, {
   tied: boolean;
 }>;
 
+type StandingsData = {
+  groups: GroupStanding[];
+  groupPhaseComplete: boolean;
+  qualifyingThirds: number[];
+  tiedThirds: number[];
+};
+
 function computeStats(teams: TeamRow[], matches: MatchRow[]): StatsMap {
   const stats: StatsMap = {};
 
@@ -121,8 +128,62 @@ function applyHeadToHead(
   return result;
 }
 
+function computeThirdsClassification(
+  groups: GroupStanding[]
+): { qualifyingThirds: number[]; tiedThirds: number[] } {
+  // Collect the 3rd-place team from each group (index 2)
+  const thirds: TeamStanding[] = groups
+    .map((g) => g.teams[2])
+    .filter((t): t is TeamStanding => t !== undefined);
+
+  if (thirds.length === 0) {
+    return { qualifyingThirds: [], tiedThirds: [] };
+  }
+
+  thirds.sort(
+    (a, b) =>
+      b.pts - a.pts ||
+      b.dg - a.dg ||
+      b.gf - a.gf
+  );
+
+  if (thirds.length <= 8) {
+    return {
+      qualifyingThirds: thirds.map((t) => t.team_id),
+      tiedThirds: [],
+    };
+  }
+
+  const eighth = thirds[7];
+  const sameAsEighth = (t: TeamStanding) =>
+    t.pts === eighth.pts && t.dg === eighth.dg && t.gf === eighth.gf;
+
+  // Teams clearly above the boundary (strictly better than 8th)
+  const clearQualifiers = thirds
+    .slice(0, 8)
+    .filter((t) => !sameAsEighth(t))
+    .map((t) => t.team_id);
+
+  // All thirds sharing the same stats as 8th position
+  const boundary = thirds.filter(sameAsEighth).map((t) => t.team_id);
+
+  if (boundary.length === 1) {
+    // No tie at cut — 8th is unique
+    return {
+      qualifyingThirds: thirds.slice(0, 8).map((t) => t.team_id),
+      tiedThirds: [],
+    };
+  }
+
+  // Multiple teams share stats at the cut → ambiguous
+  return {
+    qualifyingThirds: clearQualifiers,
+    tiedThirds: boundary,
+  };
+}
+
 const getStandings = unstable_cache(
-  async (): Promise<GroupStanding[]> => {
+  async (): Promise<StandingsData> => {
     const supabase = createServiceClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -140,12 +201,18 @@ const getStandings = unstable_cache(
         .eq("phase", "group"),
     ]);
 
-    if (!teams || teams.length === 0) return [];
+    if (!teams || teams.length === 0) {
+      return { groups: [], groupPhaseComplete: false, qualifyingThirds: [], tiedThirds: [] };
+    }
 
     const allMatches: MatchRow[] = (matches ?? []) as MatchRow[];
+
+    const groupPhaseComplete =
+      allMatches.length > 0 &&
+      allMatches.every((m) => m.status === "finished" || m.status === "cancelled");
+
     const stats = computeStats(teams as TeamRow[], allMatches);
 
-    // Group teams by group_name
     const grouped: Record<string, TeamRow[]> = {};
     for (const t of teams as TeamRow[]) {
       const g = t.group_name!;
@@ -153,12 +220,11 @@ const getStandings = unstable_cache(
       grouped[g].push(t);
     }
 
-    return Object.entries(grouped)
+    const groups: GroupStanding[] = Object.entries(grouped)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([group, groupTeams]) => {
         const teamStats: TeamStanding[] = groupTeams.map((t) => ({ ...stats[t.id] }));
 
-        // Primary sort: pts desc, dg desc, gf desc, name asc
         teamStats.sort(
           (a, b) =>
             b.pts - a.pts ||
@@ -170,13 +236,20 @@ const getStandings = unstable_cache(
         const resolved = applyHeadToHead(teamStats, allMatches);
         return { group, teams: resolved };
       });
+
+    const { qualifyingThirds, tiedThirds } = groupPhaseComplete
+      ? computeThirdsClassification(groups)
+      : { qualifyingThirds: [], tiedThirds: [] };
+
+    return { groups, groupPhaseComplete, qualifyingThirds, tiedThirds };
   },
   ["group-standings"],
   { revalidate: 60, tags: ["group-standings"] }
 );
 
 export default async function StandingsPage() {
-  const groups = await getStandings();
+  const { groups, groupPhaseComplete, qualifyingThirds, tiedThirds } =
+    await getStandings();
 
   return (
     <main className="min-h-screen pb-8">
@@ -193,7 +266,12 @@ export default async function StandingsPage() {
         </p>
       </header>
 
-      <StandingsView groups={groups} />
+      <StandingsView
+        groups={groups}
+        groupPhaseComplete={groupPhaseComplete}
+        qualifyingThirds={qualifyingThirds}
+        tiedThirds={tiedThirds}
+      />
     </main>
   );
 }
