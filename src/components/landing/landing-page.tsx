@@ -94,7 +94,7 @@ export function LandingPage() {
               className="hidden min-[375px]:block"
               style={{
                 position: "absolute",
-                right: "-50px",
+                right: "-60px",
                 top: "47%",
                 transform: "translateY(-50%)",
                 height: "200px",
