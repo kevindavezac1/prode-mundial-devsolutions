@@ -19,8 +19,17 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   const {
     register: formRegister,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
+
+  const passwordValue = watch("password") ?? "";
+  const passwordRules = [
+    { label: "8 caracteres", ok: passwordValue.length >= 8 },
+    { label: "Una mayúscula", ok: /[A-Z]/.test(passwordValue) },
+    { label: "Un número", ok: /[0-9]/.test(passwordValue) },
+  ];
+  const passwordValid = passwordRules.every((r) => r.ok);
 
   function onSubmit(data: RegisterInput) {
     setServerError(null);
@@ -184,9 +193,21 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
             }}
             {...formRegister("password")}
           />
-          {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
-          )}
+          <div className="flex gap-2 flex-wrap pt-1">
+            {passwordRules.map((rule) => (
+              <span
+                key={rule.label}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors"
+                style={{
+                  background: rule.ok ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.05)",
+                  color: rule.ok ? "#4ade80" : "rgba(255,255,255,0.3)",
+                  border: `1px solid ${rule.ok ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.08)"}`,
+                }}
+              >
+                {rule.ok ? "✓ " : ""}{rule.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-1">
@@ -216,7 +237,7 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
 
         <button
           type="submit"
-          disabled={anyPending}
+          disabled={anyPending || !passwordValid}
           className="w-full h-11 rounded-xl text-base font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60"
           style={{
             background: "rgba(255,255,255,0.07)",
