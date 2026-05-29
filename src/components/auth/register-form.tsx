@@ -12,7 +12,6 @@ import { loginWithGoogle } from "@/app/(auth)/login/actions";
 
 export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
-  const [emailInUse, setEmailInUse] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
@@ -25,13 +24,10 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
 
   function onSubmit(data: RegisterInput) {
     setServerError(null);
-    setEmailInUse(false);
     startTransition(async () => {
       const result = await register(data, redirectTo);
       if (!result) return;
-      if ("emailInUse" in result && result.emailInUse) {
-        setEmailInUse(true);
-      } else if (result.error) {
+      if (result.error) {
         setServerError(result.error);
       } else if ("success" in result && result.success) {
         setRegisteredEmail(result.email ?? null);
@@ -53,35 +49,36 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
         <div className="text-5xl">📧</div>
         <div className="space-y-3">
           <h1 className="text-2xl font-bold text-white">¡Revisá tu email!</h1>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-            Te enviamos un link de verificación a
+          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Si el email no existe aún, te enviamos un link de verificación. Si ya tenés cuenta,
+            intentá entrar con Google o con tu contraseña.
           </p>
-          <p
-            className="font-semibold text-sm px-3 py-1.5 rounded-lg inline-block"
-            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.9)" }}
+        </div>
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={isGooglePending}
+            className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
+            style={{
+              background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+              boxShadow: "0 4px 16px rgba(228,0,43,0.25)",
+              color: "white",
+            }}
           >
-            {registeredEmail}
-          </p>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-            Hacé click en el link para activar tu cuenta.
-          </p>
+            {isGooglePending ? "Redirigiendo..." : <><GoogleIcon /> Entrar con Google</>}
+          </button>
+          <Link
+            href="/login"
+            className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center transition-all active:scale-[0.98]"
+            style={{
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
+            Ir al inicio de sesión
+          </Link>
         </div>
-        <div
-          className="rounded-xl p-4 text-xs text-left space-y-1"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-        >
-          <p style={{ color: "rgba(255,255,255,0.5)" }}>¿No llegó el email?</p>
-          <p style={{ color: "rgba(255,255,255,0.3)" }}>
-            Revisá la carpeta de spam o esperá unos minutos.
-          </p>
-        </div>
-        <Link
-          href="/login"
-          className="block text-sm font-semibold hover:underline"
-          style={{ color: "#E4002B" }}
-        >
-          Ir al inicio de sesión →
-        </Link>
       </div>
     );
   }
@@ -213,42 +210,7 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
           )}
         </div>
 
-        {emailInUse && (
-          <div
-            className="rounded-xl px-4 py-4 space-y-3"
-            style={{ background: "rgba(228,0,43,0.06)", border: "1px solid rgba(228,0,43,0.2)" }}
-          >
-            <p className="text-sm text-center leading-snug" style={{ color: "rgba(255,255,255,0.75)" }}>
-              Este email ya está registrado. Intentá entrar con Google o iniciá sesión con tu contraseña.
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleGoogle}
-                disabled={anyPending}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
-                style={{
-                  background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-                  color: "white",
-                }}
-              >
-                <GoogleIcon />
-                Entrar con Google
-              </button>
-              <Link
-                href="/login"
-                className="flex-1 flex items-center justify-center rounded-xl py-2 text-xs font-semibold transition-all active:scale-[0.98]"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  color: "rgba(255,255,255,0.7)",
-                }}
-              >
-                Iniciar sesión
-              </Link>
-            </div>
-          </div>
-        )}
-        {serverError && !emailInUse && (
+        {serverError && (
           <p className="text-sm text-destructive text-center">{serverError}</p>
         )}
 
