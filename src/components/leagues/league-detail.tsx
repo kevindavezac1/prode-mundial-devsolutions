@@ -628,10 +628,15 @@ function MemberRow({
 
       <div className="flex items-center gap-2.5 min-w-0">
         <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
           style={{ background: isMe ? "rgba(228,0,43,0.3)" : "rgba(255,255,255,0.08)" }}
         >
-          {member.display_name[0]?.toUpperCase() ?? "?"}
+          {member.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={member.avatar_url} alt={member.display_name} className="w-full h-full object-cover" />
+          ) : (
+            member.display_name[0]?.toUpperCase() ?? "?"
+          )}
         </div>
         <span className="text-sm text-white truncate font-medium">
           {member.display_name}

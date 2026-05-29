@@ -48,5 +48,8 @@ export async function updateAvatarUrl(url: string): Promise<{ error?: string }> 
   if (error) return { error: error.message };
 
   revalidatePath("/profile");
+  revalidatePath("/rankings");
+  revalidatePath("/leagues");
+  revalidateTag("global-rankings");
   return {};
 }

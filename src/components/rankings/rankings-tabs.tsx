@@ -127,10 +127,15 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
 
             <div className="flex items-center gap-2 min-w-0">
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
                 style={{ background: isMe ? "rgba(228,0,43,0.3)" : "rgba(255,255,255,0.08)" }}
               >
-                {entry.display_name[0]?.toUpperCase() ?? "?"}
+                {entry.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={entry.avatar_url} alt={entry.display_name} className="w-full h-full object-cover" />
+                ) : (
+                  entry.display_name[0]?.toUpperCase() ?? "?"
+                )}
               </div>
               <span className="text-sm text-white truncate">
                 {entry.display_name}
@@ -175,10 +180,15 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
             </span>
             <div className="flex items-center gap-2 min-w-0">
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
                 style={{ background: "rgba(228,0,43,0.3)" }}
               >
-                {userEntry.display_name[0]?.toUpperCase() ?? "?"}
+                {userEntry.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={userEntry.avatar_url} alt={userEntry.display_name} className="w-full h-full object-cover" />
+                ) : (
+                  userEntry.display_name[0]?.toUpperCase() ?? "?"
+                )}
               </div>
               <span className="text-sm text-white truncate">
                 {userEntry.display_name}
