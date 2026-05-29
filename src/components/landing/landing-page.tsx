@@ -87,22 +87,25 @@ export function LandingPage() {
           {/* Central — texto empujado abajo, foto respira arriba */}
           <div className="relative flex-1 flex flex-col justify-center px-6 pb-4">
 
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo_mundial.webp"
-              alt="Copa del Mundo"
-              className="trophy-image hidden min-[375px]:block"
+            <div
+              className="trophy-wrapper hidden min-[375px]:block"
               style={{
                 position: "absolute",
                 right: "-60px",
                 top: "47%",
                 transform: "translateY(-50%)",
-                height: "200px",
-                width: "auto",
                 pointerEvents: "none",
                 userSelect: "none",
               }}
-            />
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo_mundial.webp"
+                alt="Copa del Mundo"
+                className="trophy-image"
+                style={{ height: "200px", width: "auto" }}
+              />
+            </div>
 
             {/* Franja argentina */}
             <div
