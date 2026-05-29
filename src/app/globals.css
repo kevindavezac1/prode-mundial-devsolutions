@@ -62,4 +62,9 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .trophy-image {
+    mix-blend-mode: multiply;
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+  }
 }

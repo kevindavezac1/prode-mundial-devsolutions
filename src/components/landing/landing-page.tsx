@@ -91,7 +91,7 @@ export function LandingPage() {
             <img
               src="/logo_mundial.webp"
               alt="Copa del Mundo"
-              className="hidden min-[375px]:block"
+              className="trophy-image hidden min-[375px]:block"
               style={{
                 position: "absolute",
                 right: "-60px",
@@ -99,8 +99,6 @@ export function LandingPage() {
                 transform: "translateY(-50%)",
                 height: "200px",
                 width: "auto",
-                mixBlendMode: "multiply",
-                filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))",
                 pointerEvents: "none",
                 userSelect: "none",
               }}
