@@ -12,6 +12,7 @@ import { loginWithGoogle } from "@/app/(auth)/login/actions";
 
 export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
+  const [emailInUse, setEmailInUse] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
@@ -24,12 +25,15 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
 
   function onSubmit(data: RegisterInput) {
     setServerError(null);
+    setEmailInUse(false);
     startTransition(async () => {
       const result = await register(data, redirectTo);
       if (!result) return;
-      if (result.error) {
+      if ("emailInUse" in result && result.emailInUse) {
+        setEmailInUse(true);
+      } else if (result.error) {
         setServerError(result.error);
-      } else if (result.success) {
+      } else if ("success" in result && result.success) {
         setRegisteredEmail(result.email ?? null);
       }
     });
@@ -209,7 +213,24 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
           )}
         </div>
 
-        {serverError && (
+        {emailInUse && (
+          <div
+            className="rounded-xl px-4 py-3 text-center space-y-1.5"
+            style={{ background: "rgba(228,0,43,0.06)", border: "1px solid rgba(228,0,43,0.2)" }}
+          >
+            <p className="text-sm font-semibold" style={{ color: "#E4002B" }}>
+              Este email ya tiene una cuenta.
+            </p>
+            <Link
+              href="/login"
+              className="text-sm font-semibold underline underline-offset-2"
+              style={{ color: "rgba(255,255,255,0.7)" }}
+            >
+              ¿Querés iniciar sesión? →
+            </Link>
+          </div>
+        )}
+        {serverError && !emailInUse && (
           <p className="text-sm text-destructive text-center">{serverError}</p>
         )}
 

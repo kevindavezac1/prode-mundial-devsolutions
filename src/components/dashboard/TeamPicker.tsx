@@ -11,9 +11,16 @@ type Props = {
   onClose: () => void;
 };
 
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
 export function TeamPicker({ teams, search, onSearchChange, onSelect, onClose }: Props) {
   const filtered = search
-    ? teams.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
+    ? teams.filter((t) => normalizeText(t.name).includes(normalizeText(search)))
     : teams;
 
   return (

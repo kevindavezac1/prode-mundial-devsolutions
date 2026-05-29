@@ -25,8 +25,12 @@ export async function register(input: RegisterInput, redirectTo?: string) {
   });
 
   if (error) {
-    if (error.message.includes("already registered")) {
-      return { error: "Este email ya está registrado." };
+    if (
+      error.message.toLowerCase().includes("already registered") ||
+      error.message.toLowerCase().includes("already in use") ||
+      error.message.toLowerCase().includes("email address is already")
+    ) {
+      return { error: "Este email ya tiene una cuenta.", emailInUse: true as const };
     }
     return { error: "Error al crear la cuenta. Intentá de nuevo." };
   }
