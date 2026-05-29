@@ -215,19 +215,37 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
 
         {emailInUse && (
           <div
-            className="rounded-xl px-4 py-3 text-center space-y-1.5"
+            className="rounded-xl px-4 py-4 space-y-3"
             style={{ background: "rgba(228,0,43,0.06)", border: "1px solid rgba(228,0,43,0.2)" }}
           >
-            <p className="text-sm font-semibold" style={{ color: "#E4002B" }}>
-              Este email ya tiene una cuenta.
+            <p className="text-sm text-center leading-snug" style={{ color: "rgba(255,255,255,0.75)" }}>
+              Este email ya está registrado. Intentá entrar con Google o iniciá sesión con tu contraseña.
             </p>
-            <Link
-              href="/login"
-              className="text-sm font-semibold underline underline-offset-2"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              ¿Querés iniciar sesión? →
-            </Link>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={anyPending}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+                style={{
+                  background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+                  color: "white",
+                }}
+              >
+                <GoogleIcon />
+                Entrar con Google
+              </button>
+              <Link
+                href="/login"
+                className="flex-1 flex items-center justify-center rounded-xl py-2 text-xs font-semibold transition-all active:scale-[0.98]"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "rgba(255,255,255,0.7)",
+                }}
+              >
+                Iniciar sesión
+              </Link>
+            </div>
           </div>
         )}
         {serverError && !emailInUse && (
