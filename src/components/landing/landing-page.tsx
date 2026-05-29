@@ -85,7 +85,26 @@ export function LandingPage() {
           </div>
 
           {/* Central — texto empujado abajo, foto respira arriba */}
-          <div className="flex-1 flex flex-col justify-center px-6 pb-4">
+          <div className="relative flex-1 flex flex-col justify-center px-6 pb-4">
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo_mundial.webp"
+              alt="Copa del Mundo"
+              className="hidden min-[375px]:block"
+              style={{
+                position: "absolute",
+                right: "-30px",
+                top: "47%",
+                transform: "translateY(-50%)",
+                height: "150px",
+                width: "auto",
+                mixBlendMode: "multiply",
+                filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))",
+                pointerEvents: "none",
+                userSelect: "none",
+              }}
+            />
 
             {/* Franja argentina */}
             <div
