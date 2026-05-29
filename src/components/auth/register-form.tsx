@@ -232,6 +232,14 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
           Iniciá sesión
         </Link>
       </p>
+
+      <Link
+        href="/"
+        className="block text-center text-xs"
+        style={{ color: "rgba(255,255,255,0.2)" }}
+      >
+        ← Volver al inicio
+      </Link>
     </div>
   );
 }

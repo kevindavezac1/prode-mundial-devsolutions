@@ -12,7 +12,7 @@ export async function GET() {
     .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
     .order("total_points", { ascending: false })
     .order("exact_predictions", { ascending: false })
-    .limit(100);
+    .limit(20);
 
   if (error) {
     console.error("[GET /api/rankings]", error);

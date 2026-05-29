@@ -6,6 +6,8 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { RankingsTabs } from "@/components/rankings/rankings-tabs";
 import type { RankingEntry, LeagueRankEntry } from "@/components/rankings/rankings-tabs";
 
+type UserEntry = RankingEntry & { rank: number };
+
 export const metadata: Metadata = { title: "Rankings" };
 
 // Cached 30s — shared across all users
@@ -20,7 +22,7 @@ const getGlobalRankings = unstable_cache(
       .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
       .order("total_points", { ascending: false })
       .order("exact_predictions", { ascending: false })
-      .limit(100);
+      .limit(20);
     return (data ?? []) as RankingEntry[];
   },
   ["global-rankings"],
@@ -37,6 +39,25 @@ export default async function RankingsPage() {
     getUserLeagueRanks(supabase, user.id),
   ]);
 
+  let userEntry: UserEntry | undefined;
+  if (!rankings.some((r) => r.id === user.id)) {
+    const { data: userProfile } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
+      .eq("id", user.id)
+      .single();
+    if (userProfile) {
+      const { count: higherRanked } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .or(
+          `total_points.gt.${userProfile.total_points},` +
+          `and(total_points.eq.${userProfile.total_points},exact_predictions.gt.${userProfile.exact_predictions})`
+        );
+      userEntry = { ...(userProfile as RankingEntry), rank: (higherRanked ?? 0) + 1 };
+    }
+  }
+
   return (
     <main className="min-h-screen pb-8">
       <header
@@ -50,7 +71,7 @@ export default async function RankingsPage() {
         </div>
       </header>
       <div className="p-4">
-        <RankingsTabs rankings={rankings} leagueRanks={leagueRanks} userId={user.id} />
+        <RankingsTabs rankings={rankings} leagueRanks={leagueRanks} userId={user.id} userEntry={userEntry} />
       </div>
     </main>
   );

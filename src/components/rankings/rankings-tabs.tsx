@@ -26,9 +26,10 @@ type Props = {
   rankings: RankingEntry[];
   leagueRanks: LeagueRankEntry[];
   userId: string;
+  userEntry?: RankingEntry & { rank: number };
 };
 
-export function RankingsTabs({ rankings, leagueRanks, userId }: Props) {
+export function RankingsTabs({ rankings, leagueRanks, userId, userEntry }: Props) {
   const [tab, setTab] = useState<"global" | "ligas">("global");
 
   return (
@@ -62,13 +63,13 @@ export function RankingsTabs({ rankings, leagueRanks, userId }: Props) {
         ))}
       </div>
 
-      {tab === "global" && <GlobalTab rankings={rankings} userId={userId} />}
+      {tab === "global" && <GlobalTab rankings={rankings} userId={userId} userEntry={userEntry} />}
       {tab === "ligas" && <LeaguesTab leagueRanks={leagueRanks} />}
     </div>
   );
 }
 
-function GlobalTab({ rankings, userId }: { rankings: RankingEntry[]; userId: string }) {
+function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; userId: string; userEntry?: RankingEntry & { rank: number } }) {
   const userIdx = rankings.findIndex((r) => r.id === userId);
 
   return (
@@ -156,15 +157,48 @@ function GlobalTab({ rankings, userId }: { rankings: RankingEntry[]; userId: str
         );
       })}
 
-      {userIdx === -1 && (
-        <div
-          className="px-4 py-3"
-          style={{ borderTop: "1px dashed rgba(255,255,255,0.08)" }}
-        >
-          <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Tu posición está fuera del top 100
-          </p>
-        </div>
+      {userIdx === -1 && userEntry && (
+        <>
+          <div
+            className="px-4 py-1.5 flex items-center"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+          >
+            <span className="text-xs" style={{ color: "rgba(255,255,255,0.18)" }}>· · ·</span>
+          </div>
+          <Link
+            href={`/profile/${userEntry.username}`}
+            className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] gap-2 px-4 py-3 items-center transition-all active:scale-[0.99]"
+            style={{ background: "rgba(228,0,43,0.06)" }}
+          >
+            <span className="text-sm text-center">
+              <span style={{ color: "rgba(255,255,255,0.8)" }}>{userEntry.rank}</span>
+            </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                style={{ background: "rgba(228,0,43,0.3)" }}
+              >
+                {userEntry.display_name[0]?.toUpperCase() ?? "?"}
+              </div>
+              <span className="text-sm text-white truncate">
+                {userEntry.display_name}
+                <span className="ml-1 text-[10px] text-wc-red font-bold"> (vos)</span>
+              </span>
+            </div>
+            <span
+              className="font-display text-base text-right tabular-nums"
+              style={{ color: "rgba(255,255,255,0.8)" }}
+            >
+              {userEntry.total_points === 0 ? "—" : userEntry.total_points}
+            </span>
+            <span
+              className="text-sm text-right tabular-nums"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              {userEntry.exact_predictions === 0 ? "—" : userEntry.exact_predictions}
+            </span>
+          </Link>
+        </>
       )}
     </div>
   );

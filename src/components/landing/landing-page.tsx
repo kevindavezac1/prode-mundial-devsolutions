@@ -163,50 +163,6 @@ export function LandingPage() {
               </Link>
             </p>
 
-            {/* Social proof */}
-            <div className="mt-6 flex items-center gap-2">
-              <div className="flex items-center">
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{
-                    background: "#74ACDF",
-                    border: "2px solid #02040a",
-                    fontSize: "9px",
-                    fontWeight: 900,
-                    color: "#02040a",
-                  }}
-                >
-                  M
-                </div>
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center -ml-2"
-                  style={{
-                    background: "#E4002B",
-                    border: "2px solid #02040a",
-                    fontSize: "9px",
-                    fontWeight: 900,
-                    color: "white",
-                  }}
-                >
-                  J
-                </div>
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center -ml-2"
-                  style={{
-                    background: "#D4AF37",
-                    border: "2px solid #02040a",
-                    fontSize: "9px",
-                    fontWeight: 900,
-                    color: "#02040a",
-                  }}
-                >
-                  P
-                </div>
-              </div>
-              <p className="text-[10px] ml-2" style={{ color: "rgba(255,255,255,0.3)" }}>
-                +1.200 jugadores ya adentro
-              </p>
-            </div>
 
           </div>
         </div>
@@ -255,6 +211,13 @@ export function LandingPage() {
           style={{ fontSize: "10px", color: "rgba(255,255,255,0.18)", letterSpacing: "1px" }}
         >
           Gratis · Sin publicidad · 48 equipos · 104 partidos
+        </p>
+
+        <p
+          className="mt-4 pb-2 text-center"
+          style={{ fontSize: "9px", color: "rgba(255,255,255,0.1)", letterSpacing: "1.5px" }}
+        >
+          by DevSolutions
         </p>
 
       </div>

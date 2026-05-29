@@ -104,9 +104,16 @@ export default async function ProfilePage() {
           <form action={logout}>
             <button
               type="submit"
-              className="text-sm font-semibold w-full text-left py-2"
-              style={{ color: "rgba(228,0,43,0.7)" }}
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
+              style={{
+                color: "#E4002B",
+                border: "1px solid rgba(228,0,43,0.3)",
+                background: "rgba(228,0,43,0.04)",
+              }}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
               Cerrar sesión
             </button>
           </form>
