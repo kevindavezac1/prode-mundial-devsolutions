@@ -97,7 +97,7 @@ export function LandingPage() {
                 right: "-30px",
                 top: "47%",
                 transform: "translateY(-50%)",
-                height: "150px",
+                height: "200px",
                 width: "auto",
                 mixBlendMode: "multiply",
                 filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))",
