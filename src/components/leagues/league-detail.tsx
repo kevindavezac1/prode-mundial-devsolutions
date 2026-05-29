@@ -149,8 +149,7 @@ export function LeagueDetailView({ league, userId }: Props) {
         });
 
       if (storageError) {
-        console.error("Storage upload error:", storageError);
-        setImageError(`Error al subir: ${storageError.message}`);
+        setImageError("Error al subir la imagen. Intentá de nuevo.");
         return;
       }
 
