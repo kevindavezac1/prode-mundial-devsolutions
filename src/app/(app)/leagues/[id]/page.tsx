@@ -58,7 +58,7 @@ export default async function LeaguePage({ params }: { params: { id: string } })
 
   const { data: league, error } = await supabase
     .from("leagues")
-    .select("id, name, invite_code, owner_id, max_members, is_public, created_at")
+    .select("id, name, invite_code, owner_id, max_members, is_public, created_at, image_url")
     .eq("id", params.id)
     .single();
 

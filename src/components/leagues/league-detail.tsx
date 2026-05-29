@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
-
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { updateLeagueImageUrl } from "@/app/(app)/leagues/[id]/actions";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_SIZE = 5 * 1024 * 1024;
 
 type Props = { league: LeagueDetail; userId: string };
 
@@ -98,6 +102,76 @@ export function LeagueDetailView({ league, userId }: Props) {
 
   const isOwner = league.owner_id === userId;
   const [inviteCode, setInviteCode] = useState(league.invite_code);
+
+  // ── League image ──────────────────────────────────────────────────────────
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [leagueImage, setLeagueImage] = useState<string | null>(league.image_url ?? null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isSavingImage, startImageTransition] = useTransition();
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setImageError(null);
+    if (!ALLOWED_TYPES.includes(selected.type)) {
+      setImageError("Formato no válido. Usá JPG, PNG o WebP.");
+      return;
+    }
+    if (selected.size > MAX_SIZE) {
+      setImageError("La imagen no puede superar los 5MB.");
+      return;
+    }
+    setPendingImageFile(selected);
+    setImagePreview(URL.createObjectURL(selected));
+  }
+
+  function cancelImageUpload() {
+    setPendingImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  }
+
+  function saveLeagueImage() {
+    if (!pendingImageFile) return;
+    startImageTransition(async () => {
+      setImageError(null);
+      const supabase = createClient();
+      const path = `${league.id}/image`;
+
+      const { error: storageError } = await supabase.storage
+        .from("league-images")
+        .upload(path, pendingImageFile, {
+          upsert: true,
+          contentType: pendingImageFile.type,
+        });
+
+      if (storageError) {
+        setImageError("Error al subir la imagen. Intentá de nuevo.");
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("league-images")
+        .getPublicUrl(path);
+
+      const urlWithBust = `${publicUrl}?t=${Date.now()}`;
+      const result = await updateLeagueImageUrl(league.id, urlWithBust);
+
+      if (result.error) {
+        setImageError(result.error);
+        return;
+      }
+
+      setLeagueImage(urlWithBust);
+      setImagePreview(null);
+      setPendingImageFile(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+      toast.success("Imagen actualizada.");
+    });
+  }
 
   // ── Edit league name ──────────────────────────────────────────────────────
   const [leagueName, setLeagueName] = useState(league.name);
@@ -222,6 +296,92 @@ export function LeagueDetailView({ league, userId }: Props) {
       {modal && <ConfirmModal modal={modal} onClose={() => setModal(null)} />}
 
       <div className="space-y-5">
+
+        {/* League image — owner only */}
+        {isOwner && (
+          <div className="space-y-2">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              className="relative w-full rounded-2xl overflow-hidden flex items-center justify-center group"
+              style={{
+                height: "120px",
+                background: leagueImage || imagePreview
+                  ? "transparent"
+                  : "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {(imagePreview ?? leagueImage) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imagePreview ?? leagueImage!}
+                  alt="imagen de liga"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-2xl">🖼️</span>
+                  <p
+                    className="text-xs font-semibold"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    Agregar imagen de liga
+                  </p>
+                </div>
+              )}
+              {/* Hover overlay */}
+              <div
+                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: "rgba(0,0,0,0.5)" }}
+              >
+                <p className="text-xs font-semibold text-white">
+                  {leagueImage ? "Cambiar imagen" : "Agregar imagen"}
+                </p>
+              </div>
+            </button>
+
+            {pendingImageFile && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={saveLeagueImage}
+                  disabled={isSavingImage}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)" }}
+                >
+                  {isSavingImage ? "Subiendo…" : "Guardar imagen"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelImageUpload}
+                  disabled={isSavingImage}
+                  className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-60"
+                  style={{
+                    background: "rgba(255,255,255,0.07)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+
+            {imageError && (
+              <p className="text-xs text-center" style={{ color: "#f87171" }}>
+                {imageError}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* League name — editable for owner */}
         {isOwner && (

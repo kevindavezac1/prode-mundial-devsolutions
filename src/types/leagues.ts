@@ -6,6 +6,7 @@ export type League = {
   max_members: number;
   is_public: boolean;
   created_at: string;
+  image_url?: string | null;
   member_count?: number;
 };
 

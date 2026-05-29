@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileStats } from "@/components/profile/profile-stats";
 import { EditDisplayName } from "@/components/profile/edit-display-name";
+import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { logout } from "@/app/(app)/dashboard/actions";
 
 export const metadata: Metadata = { title: "Mi perfil" };
@@ -50,17 +51,11 @@ export default async function ProfilePage() {
       <div className="p-4 space-y-6">
         {/* Avatar + identity */}
         <div className="flex items-center gap-4">
-          <div
-            className="w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-2xl font-bold text-white"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
-          >
-            {profile.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              profile.display_name[0]?.toUpperCase() ?? "?"
-            )}
-          </div>
+          <AvatarUpload
+            userId={profile.id}
+            displayName={profile.display_name}
+            currentAvatarUrl={profile.avatar_url}
+          />
           <div className="min-w-0">
             <p className="font-bold text-lg truncate text-white">{profile.display_name}</p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>@{profile.username}</p>

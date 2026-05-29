@@ -34,3 +34,19 @@ export async function updateDisplayName(
   revalidateTag("global-rankings");
   return {};
 }
+
+export async function updateAvatarUrl(url: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: url })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/profile");
+  return {};
+}
