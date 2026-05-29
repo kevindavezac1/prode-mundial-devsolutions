@@ -94,14 +94,6 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1 transition-colors hover:opacity-100"
-        style={{ color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.15)" }}
-      >
-        ← Volver al inicio
-      </Link>
-
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-bold text-white">Crear cuenta</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Prode Mundial 2026</p>
@@ -263,6 +255,15 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
         </Link>
       </p>
 
+      <div className="flex justify-center">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1 transition-colors hover:opacity-100"
+          style={{ color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.15)" }}
+        >
+          ← Volver al inicio
+        </Link>
+      </div>
     </div>
   );
 }
