@@ -4,19 +4,29 @@ import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { submitResult } from "@/app/(protected)/admin/actions";
+import { FlagEmoji } from "@/components/match/FlagEmoji";
 import type { MatchWithTeams } from "@/types/matches";
-
-type Filter = "pending" | "finished" | "all";
 
 type Props = { matches: MatchWithTeams[] };
 
-function FormattedDate({ scheduledAt }: { scheduledAt: string }) {
+function getMatchDate(scheduledAt: string): string {
+  return scheduledAt.split("T")[0];
+}
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00Z");
+  return d.toLocaleDateString("es-AR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function MatchTime({ scheduledAt }: { scheduledAt: string }) {
   const [text, setText] = useState<string | null>(null);
   useEffect(() => {
     setText(
-      new Date(scheduledAt).toLocaleString("es-AR", {
-        day: "2-digit",
-        month: "2-digit",
+      new Date(scheduledAt).toLocaleTimeString("es-AR", {
         hour: "2-digit",
         minute: "2-digit",
       })
@@ -25,33 +35,101 @@ function FormattedDate({ scheduledAt }: { scheduledAt: string }) {
   return <>{text ?? "–"}</>;
 }
 
-const statusLabel: Record<string, string> = {
-  scheduled: "Programado",
-  live: "En vivo",
-  finished: "Finalizado",
-  cancelled: "Cancelado",
-};
-
-const statusColor: Record<string, string> = {
-  scheduled: "",
-  live: "text-red-400 font-semibold",
-  finished: "text-green-400",
-  cancelled: "line-through",
-};
+function StatusBadge({ status }: { status: MatchWithTeams["status"] }) {
+  if (status === "live") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+        style={{
+          background: "rgba(228,0,43,0.15)",
+          color: "#E4002B",
+          border: "1px solid rgba(228,0,43,0.3)",
+        }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+        EN VIVO
+      </span>
+    );
+  }
+  if (status === "finished") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+        style={{
+          background: "rgba(34,197,94,0.1)",
+          color: "#4ade80",
+          border: "1px solid rgba(34,197,94,0.2)",
+        }}
+      >
+        ✓ Finalizado
+      </span>
+    );
+  }
+  if (status === "cancelled") {
+    return (
+      <span
+        className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full"
+        style={{
+          background: "rgba(255,255,255,0.05)",
+          color: "rgba(255,255,255,0.3)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        Cancelado
+      </span>
+    );
+  }
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+      style={{
+        background: "rgba(251,146,60,0.1)",
+        color: "rgba(251,146,60,0.85)",
+        border: "1px solid rgba(251,146,60,0.2)",
+      }}
+    >
+      ● Pendiente
+    </span>
+  );
+}
 
 export function AdminPanel({ matches }: Props) {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("pending");
   const [editing, setEditing] = useState<MatchWithTeams | null>(null);
   const [homeVal, setHomeVal] = useState("");
   const [awayVal, setAwayVal] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const filtered = matches.filter((m) => {
-    if (filter === "pending") return m.status === "scheduled" || m.status === "live";
-    if (filter === "finished") return m.status === "finished";
-    return true;
-  });
+  const dates = Array.from(new Set(matches.map((m) => getMatchDate(m.scheduled_at)))).sort();
+  const matchesByDate: Record<string, MatchWithTeams[]> = {};
+  for (const d of dates) {
+    matchesByDate[d] = matches.filter((m) => getMatchDate(m.scheduled_at) === d);
+  }
+
+  function getDefaultIdx(): number {
+    if (dates.length === 0) return 0;
+    const today = new Date().toISOString().split("T")[0];
+    const todayIdx = dates.indexOf(today);
+    if (todayIdx !== -1) return todayIdx;
+    const futurePending = dates.find(
+      (d) =>
+        d >= today &&
+        (matchesByDate[d] ?? []).some(
+          (m) => m.status === "scheduled" || m.status === "live"
+        )
+    );
+    if (futurePending) return dates.indexOf(futurePending);
+    return dates.length - 1;
+  }
+
+  const [dateIdx, setDateIdx] = useState(() => getDefaultIdx());
+  const currentDate = dates[dateIdx] ?? null;
+  const currentMatches = currentDate ? (matchesByDate[currentDate] ?? []) : [];
+
+  const today = new Date().toISOString().split("T")[0];
+  const pendingToday = (matchesByDate[today] ?? []).filter(
+    (m) => m.status === "scheduled" || m.status === "live"
+  ).length;
 
   function openModal(match: MatchWithTeams) {
     setEditing(match);
@@ -89,102 +167,177 @@ export function AdminPanel({ matches }: Props) {
     });
   }
 
-  const filters: { key: Filter; label: string }[] = [
-    { key: "pending", label: "Pendientes" },
-    { key: "finished", label: "Finalizados" },
-    { key: "all", label: "Todos" },
-  ];
+  if (dates.length === 0) {
+    return (
+      <p className="text-sm text-center py-10" style={{ color: "rgba(255,255,255,0.3)" }}>
+        Sin partidos disponibles.
+      </p>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {/* Filter tabs */}
-      <div
-        className="flex rounded-xl p-1 gap-1"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-      >
-        {filters.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setFilter(key)}
-            className="flex-1 rounded-lg py-2 text-sm font-semibold transition-all"
-            style={
-              filter === key
-                ? {
-                    background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-                    color: "white",
-                    boxShadow: "0 2px 10px rgba(228,0,43,0.2)",
-                  }
-                : { color: "rgba(255,255,255,0.4)" }
-            }
+
+      {/* Date navigator */}
+      <div className="space-y-2">
+        {pendingToday > 0 && (
+          <p
+            className="text-[11px] font-bold text-center"
+            style={{ color: "rgba(251,146,60,0.8)", letterSpacing: "1px" }}
           >
-            {label}
+            {pendingToday} partido{pendingToday !== 1 ? "s" : ""} pendiente{pendingToday !== 1 ? "s" : ""} hoy
+          </p>
+        )}
+        <div
+          className="flex items-center justify-between rounded-2xl px-3 py-2.5"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          <button
+            onClick={() => setDateIdx((i) => Math.max(0, i - 1))}
+            disabled={dateIdx === 0}
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-lg font-bold transition-all active:scale-95 disabled:opacity-20"
+            style={{ color: "white" }}
+          >
+            ←
           </button>
-        ))}
+          <div className="text-center">
+            <p className="font-bold text-sm text-white capitalize">
+              {currentDate ? formatDateLabel(currentDate) : "—"}
+            </p>
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+              {dateIdx + 1} / {dates.length}
+            </p>
+          </div>
+          <button
+            onClick={() => setDateIdx((i) => Math.min(dates.length - 1, i + 1))}
+            disabled={dateIdx === dates.length - 1}
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-lg font-bold transition-all active:scale-95 disabled:opacity-20"
+            style={{ color: "white" }}
+          >
+            →
+          </button>
+        </div>
       </div>
 
-      {/* Match list */}
-      {filtered.length === 0 && (
+      {/* Match cards */}
+      {currentMatches.length === 0 && (
         <p className="text-sm text-center py-8" style={{ color: "rgba(255,255,255,0.4)" }}>
-          Sin partidos en esta categoría.
+          Sin partidos este día.
         </p>
       )}
 
-      <div className="space-y-2">
-        {filtered.map((match) => (
-          <div
-            key={match.id}
-            className="rounded-2xl px-4 py-3 space-y-2"
-            style={{
-              background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
-              border: "1px solid rgba(255,255,255,0.07)",
-            }}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">
-                  {match.home_team.code} vs {match.away_team.code}
-                </p>
-                <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {match.home_team.name} · {match.away_team.name}
-                </p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className={`text-xs ${statusColor[match.status]}`} style={!statusColor[match.status] ? { color: "rgba(255,255,255,0.4)" } : undefined}>
-                  {statusLabel[match.status]}
-                </p>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  <FormattedDate scheduledAt={match.scheduled_at} />
-                </p>
-              </div>
-            </div>
+      <div className="space-y-3">
+        {currentMatches.map((match) => {
+          const isOpen = match.status === "scheduled" || match.status === "live";
+          return (
+            <div
+              key={match.id}
+              className="rounded-2xl p-4 space-y-3"
+              style={{
+                background: isOpen
+                  ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
+                  : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
+                border: isOpen
+                  ? "1px solid rgba(251,146,60,0.12)"
+                  : "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              {/* Teams + score */}
+              <div className="flex items-center gap-2">
+                {/* Home */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <FlagEmoji
+                    code={match.home_team.code}
+                    flagUrl={match.home_team.flag_url}
+                    className="w-9 h-9 rounded-full object-cover shrink-0"
+                    alt={match.home_team.name}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">{match.home_team.code}</p>
+                    <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      {match.home_team.name}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-mono tabular-nums text-white">
-                {match.status === "finished"
-                  ? `${match.home_score} – ${match.away_score}`
-                  : "— vs —"}
-              </span>
-              {(match.status === "scheduled" || match.status === "live" || match.status === "finished") && (
-                <button
-                  className="h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95"
-                  style={{
-                    background: "rgba(255,255,255,0.07)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "white",
-                  }}
-                  onClick={() => openModal(match)}
-                >
-                  {match.status === "finished" ? "Corregir" : "Cargar resultado"}
-                </button>
-              )}
+                {/* Score */}
+                <div className="text-center shrink-0 px-1">
+                  {match.status === "finished" ? (
+                    <p className="font-display text-2xl text-white tabular-nums">
+                      {match.home_score} — {match.away_score}
+                    </p>
+                  ) : (
+                    <p
+                      className="font-display text-xl tabular-nums"
+                      style={{ color: "rgba(255,255,255,0.15)" }}
+                    >
+                      — —
+                    </p>
+                  )}
+                </div>
+
+                {/* Away */}
+                <div className="flex items-center gap-2 flex-1 min-w-0 flex-row-reverse">
+                  <FlagEmoji
+                    code={match.away_team.code}
+                    flagUrl={match.away_team.flag_url}
+                    className="w-9 h-9 rounded-full object-cover shrink-0"
+                    alt={match.away_team.name}
+                  />
+                  <div className="min-w-0 text-right">
+                    <p className="text-sm font-bold text-white">{match.away_team.code}</p>
+                    <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      {match.away_team.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Meta: status + time + phase + action */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <StatusBadge status={match.status} />
+                  <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    <MatchTime scheduledAt={match.scheduled_at} /> · {match.phase}
+                  </span>
+                </div>
+
+                {match.status !== "cancelled" && (
+                  <button
+                    onClick={() => openModal(match)}
+                    className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95"
+                    style={
+                      isOpen
+                        ? {
+                            background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
+                            color: "white",
+                            boxShadow: "0 2px 8px rgba(228,0,43,0.25)",
+                          }
+                        : {
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.45)",
+                          }
+                    }
+                  >
+                    {isOpen ? "Cargar resultado" : "Editar"}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+        >
           <div
             className="rounded-2xl p-6 w-full max-w-sm space-y-5"
             style={{
@@ -220,7 +373,9 @@ export function AdminPanel({ matches }: Props) {
                   }}
                 />
               </div>
-              <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>—</span>
+              <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>
+                —
+              </span>
               <div className="flex-1 space-y-1">
                 <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
                   {editing.away_team.code}
