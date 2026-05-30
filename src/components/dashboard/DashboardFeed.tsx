@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import useSWR from "swr";
 import { MatchCard } from "@/components/match/MatchCard";
 import { PredictionSheet } from "@/components/match/PredictionSheet";
@@ -20,23 +20,21 @@ type FeedResponse = { data: MatchWithPrediction[] };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const TZ = "America/Argentina/Buenos_Aires";
-
 const fetcher = (url: string) =>
   fetch(url).then((r) => {
     if (!r.ok) throw new Error("fetch error");
     return r.json();
   });
 
-function isSameDayARG(a: Date, b: Date): boolean {
-  const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: TZ });
+function isSameDayTZ(a: Date, b: Date, tz: string): boolean {
+  const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: tz });
   return fmt(a) === fmt(b);
 }
 
-function formatDateLabel(date: Date): string {
+function formatDateLabel(date: Date, tz: string): string {
   return date
     .toLocaleDateString("es-AR", {
-      timeZone: TZ,
+      timeZone: tz,
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -107,6 +105,11 @@ export function DashboardFeed({ displayName }: Props) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [teamSearch, setTeamSearch] = useState("");
+  const [localTZ, setLocalTZ] = useState<string>("UTC");
+
+  useEffect(() => {
+    setLocalTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   const matches = response?.data ?? [];
   const now = useMemo(() => new Date(), []);
@@ -120,16 +123,16 @@ export function DashboardFeed({ displayName }: Props) {
     const unique: Date[] = [];
     for (const m of sorted) {
       const d = new Date(m.scheduled_at);
-      if (!unique.some((u) => isSameDayARG(u, d))) unique.push(d);
+      if (!unique.some((u) => isSameDayTZ(u, d, localTZ))) unique.push(d);
     }
     return unique;
-  }, [matches]);
+  }, [matches, localTZ]);
 
   // ─── Default day: today if it has matches; otherwise nearest day ───────────
 
   const initialDayIndex = useMemo(() => {
     if (allDates.length === 0) return 0;
-    const todayIdx = allDates.findIndex((d) => isSameDayARG(d, now));
+    const todayIdx = allDates.findIndex((d) => isSameDayTZ(d, now, localTZ));
     if (todayIdx !== -1) return todayIdx;
     // Nearest day by absolute time difference
     let nearest = 0;
@@ -142,18 +145,18 @@ export function DashboardFeed({ displayName }: Props) {
       }
     }
     return nearest;
-  }, [allDates, now]);
+  }, [allDates, now, localTZ]);
 
   const effectiveDayIndex = selectedDayIndex ?? initialDayIndex;
   const selectedDate = allDates[effectiveDayIndex] ?? null;
-  const isSelectedToday = selectedDate ? isSameDayARG(selectedDate, now) : false;
+  const isSelectedToday = selectedDate ? isSameDayTZ(selectedDate, now, localTZ) : false;
 
   // ─── Matches for selected day: finished → live → pending ─────────────────
 
   const matchesForDay = useMemo(() => {
     if (!selectedDate) return [];
     const day = matches.filter((m) =>
-      isSameDayARG(new Date(m.scheduled_at), selectedDate)
+      isSameDayTZ(new Date(m.scheduled_at), selectedDate, localTZ)
     );
     const byTime = (a: MatchWithPrediction, b: MatchWithPrediction) =>
       new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime();
@@ -161,7 +164,7 @@ export function DashboardFeed({ displayName }: Props) {
     const live = day.filter((m) => !isFinished(m) && isLive(m, now)).sort(byTime);
     const pending = day.filter((m) => !isFinished(m) && !isLive(m, now)).sort(byTime);
     return [...finished, ...live, ...pending];
-  }, [matches, selectedDate, now]);
+  }, [matches, selectedDate, now, localTZ]);
 
   // ─── All unique teams extracted from feed ────────────────────────────────
 
@@ -193,17 +196,17 @@ export function DashboardFeed({ displayName }: Props) {
   // ─── Greeting: pending count always for today ────────────────────────────
 
   const hasTodayMatches = useMemo(
-    () => matches.some((m) => isSameDayARG(new Date(m.scheduled_at), now)),
-    [matches, now]
+    () => matches.some((m) => isSameDayTZ(new Date(m.scheduled_at), now, localTZ)),
+    [matches, now, localTZ]
   );
 
   const pendingTodayCount = useMemo(() => {
     if (!hasTodayMatches) return 0;
     return matches
-      .filter((m) => isSameDayARG(new Date(m.scheduled_at), now))
+      .filter((m) => isSameDayTZ(new Date(m.scheduled_at), now, localTZ))
       .filter((m) => getMatchState(m, m.userPrediction, now) === "upcoming-unpredicted")
       .length;
-  }, [matches, now, hasTodayMatches]);
+  }, [matches, now, hasTodayMatches, localTZ]);
 
   // ─── Sheet handlers ───────────────────────────────────────────────────────
 
@@ -380,7 +383,7 @@ export function DashboardFeed({ displayName }: Props) {
               className="font-bold text-[11px] text-center"
               style={{ color: "rgba(255,255,255,0.75)", letterSpacing: "1.5px" }}
             >
-              {selectedDate ? formatDateLabel(selectedDate) : ""}
+              {selectedDate ? formatDateLabel(selectedDate, localTZ) : ""}
             </span>
           </div>
 

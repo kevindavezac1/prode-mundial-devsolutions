@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import { getMatchState } from "@/lib/match-helpers";
 import type { MatchVisualState } from "@/lib/match-helpers";
@@ -43,22 +44,18 @@ function formatMatchTime(scheduled_at: string): string {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "America/Argentina/Buenos_Aires",
   });
 }
 
 // ─── State badge ──────────────────────────────────────────────────────────────
 
-const TZ = "America/Argentina/Buenos_Aires";
-
 function formatDateLabel(scheduledAt: string): string {
   const scheduled = new Date(scheduledAt);
   const now = new Date();
-  const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: TZ });
+  const fmt = (d: Date) => d.toLocaleDateString("es-AR");
   if (fmt(scheduled) === fmt(now)) return "HOY";
   return scheduled
     .toLocaleDateString("es-AR", {
-      timeZone: TZ,
       weekday: "short",
       day: "numeric",
       month: "short",
@@ -69,11 +66,11 @@ function formatDateLabel(scheduledAt: string): string {
 function StateBadge({
   state,
   time,
-  scheduledAt,
+  dateLabel,
 }: {
   state: MatchVisualState;
   time: string;
-  scheduledAt: string;
+  dateLabel: string;
 }) {
   if (state === "live") {
     return (
@@ -116,7 +113,7 @@ function StateBadge({
       style={{ letterSpacing: "1.5px" }}
       className="text-[10px] font-bold text-white/50"
     >
-      {formatDateLabel(scheduledAt)} · {time}
+      {dateLabel} · {time}
     </span>
   );
 }
@@ -389,7 +386,14 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
   const state = getMatchState(match, userPrediction);
   const isClickable =
     state === "upcoming-unpredicted" || state === "upcoming-predicted";
-  const time = formatMatchTime(match.scheduled_at);
+  const [time, setTime] = useState<string>("–");
+  const [dateLabel, setDateLabel] = useState<string>("");
+
+  useEffect(() => {
+    setTime(formatMatchTime(match.scheduled_at));
+    setDateLabel(formatDateLabel(match.scheduled_at));
+  }, [match.scheduled_at]);
+
   const isFinishedState = state === "finished";
   const isLiveState = state === "live";
 
@@ -456,7 +460,7 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
 
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-4 pb-0">
-        <StateBadge state={state} time={time} scheduledAt={match.scheduled_at} />
+        <StateBadge state={state} time={time} dateLabel={dateLabel} />
         {match.group_name && <GroupBadge name={match.group_name} />}
       </div>
 

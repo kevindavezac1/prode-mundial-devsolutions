@@ -12,23 +12,21 @@ type ApiResponse = { data: PredictionsMap };
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-const TZ = "America/Argentina/Buenos_Aires";
-
 type DateGroup = {
   key: string;
   label: string;
   matches: MatchWithTeams[];
 };
 
-function groupByDate(matches: MatchWithTeams[]): DateGroup[] {
+function groupByDate(matches: MatchWithTeams[], tz: string): DateGroup[] {
   const groups = new Map<string, DateGroup>();
 
   for (const match of matches) {
     const d = new Date(match.scheduled_at);
-    const key = d.toLocaleDateString("es-AR", { timeZone: TZ });
+    const key = d.toLocaleDateString("es-AR", { timeZone: tz });
     if (!groups.has(key)) {
       const label = d.toLocaleDateString("es-AR", {
-        timeZone: TZ,
+        timeZone: tz,
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -44,13 +42,18 @@ function groupByDate(matches: MatchWithTeams[]): DateGroup[] {
 export function MatchesList({ matches }: Props) {
   const { data, mutate } = useSWR<ApiResponse>("/api/predictions", fetcher);
   const predictions = useMemo<PredictionsMap>(() => data?.data ?? {}, [data]);
+  const [localTZ, setLocalTZ] = useState<string>("UTC");
 
-  const groups = useMemo(() => groupByDate(matches), [matches]);
+  useEffect(() => {
+    setLocalTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
+
+  const groups = useMemo(() => groupByDate(matches, localTZ), [matches, localTZ]);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  // Set default after mount: today in ARG tz, or next upcoming date
+  // Set default after mount: today in local tz, or next upcoming date
   useEffect(() => {
-    const todayKey = new Date().toLocaleDateString("es-AR", { timeZone: TZ });
+    const todayKey = new Date().toLocaleDateString("es-AR", { timeZone: localTZ });
     const todayIdx = groups.findIndex((g) => g.key === todayKey);
 
     if (todayIdx >= 0) {
@@ -62,7 +65,7 @@ export function MatchesList({ matches }: Props) {
       );
       setSelectedIdx(nextIdx >= 0 ? nextIdx : 0);
     }
-  }, [groups]);
+  }, [groups, localTZ]);
 
   const handleSave = useCallback(
     async (matchId: number, home: number, away: number) => {

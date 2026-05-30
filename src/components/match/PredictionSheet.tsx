@@ -37,19 +37,13 @@ type Props = {
 function formatSheetTime(scheduled_at: string): string {
   const d = new Date(scheduled_at);
   const now = new Date();
-  const todayInARG = now.toLocaleDateString("es-AR", {
-    timeZone: "America/Argentina/Buenos_Aires",
-  });
-  const matchDayInARG = d.toLocaleDateString("es-AR", {
-    timeZone: "America/Argentina/Buenos_Aires",
-  });
+  const fmt = (date: Date) => date.toLocaleDateString("es-AR");
   const time = d.toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "America/Argentina/Buenos_Aires",
   });
-  return todayInARG === matchDayInARG ? `Hoy ${time}` : time;
+  return fmt(d) === fmt(now) ? `Hoy ${time}` : time;
 }
 
 // ─── Score stepper ────────────────────────────────────────────────────────────
