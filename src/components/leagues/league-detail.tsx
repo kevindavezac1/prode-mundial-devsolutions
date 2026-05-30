@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
 
@@ -452,15 +453,8 @@ function MemberRow({
   const medal =
     position === 1 ? "🥇" : position === 2 ? "🥈" : position === 3 ? "🥉" : null;
 
-  return (
-    <div
-      className="grid gap-2 px-4 py-3 items-center"
-      style={{
-        gridTemplateColumns: isOwner ? "2rem 1fr 4rem 4rem" : "2rem 1fr 4rem",
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        background: isMe ? "rgba(228,0,43,0.06)" : "transparent",
-      }}
-    >
+  const rowContent = (
+    <>
       <span className="text-sm text-center font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>
         {medal ?? position}
       </span>
@@ -499,7 +493,7 @@ function MemberRow({
         <div className="flex justify-end">
           {!isMe && (
             <button
-              onClick={onKick}
+              onClick={(e) => { e.preventDefault(); onKick(); }}
               className="text-[10px] font-bold rounded-lg px-2 py-1 transition-all active:scale-95"
               style={{
                 background: "rgba(228,0,43,0.1)",
@@ -513,6 +507,30 @@ function MemberRow({
           )}
         </div>
       )}
+    </>
+  );
+
+  const gridStyle: React.CSSProperties = {
+    gridTemplateColumns: isOwner ? "2rem 1fr 4rem 4rem" : "2rem 1fr 4rem",
+    borderBottom: "1px solid rgba(255,255,255,0.04)",
+    background: isMe ? "rgba(228,0,43,0.06)" : "transparent",
+  };
+
+  if (member.username) {
+    return (
+      <Link
+        href={`/profile/${member.username}`}
+        className="grid gap-2 px-4 py-3 items-center transition-colors hover:bg-white/[0.03]"
+        style={gridStyle}
+      >
+        {rowContent}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="grid gap-2 px-4 py-3 items-center" style={gridStyle}>
+      {rowContent}
     </div>
   );
 }

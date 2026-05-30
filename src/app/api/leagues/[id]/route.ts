@@ -122,19 +122,20 @@ export async function GET(
 
   const { data: members } = await supabase
     .from("league_members")
-    .select("user_id, joined_at, profiles(display_name, avatar_url, total_points)")
+    .select("user_id, joined_at, profiles(username, display_name, avatar_url, total_points)")
     .eq("league_id", params.id);
 
   type MemberRow = {
     user_id: string;
     joined_at: string;
-    profiles: { display_name: string; avatar_url: string | null; total_points: number } | null;
+    profiles: { username: string | null; display_name: string; avatar_url: string | null; total_points: number } | null;
   };
 
   const sorted = ((members ?? []) as unknown as MemberRow[])
     .map((m) => ({
       user_id: m.user_id,
       joined_at: m.joined_at,
+      username: m.profiles?.username ?? null,
       display_name: m.profiles?.display_name ?? "Usuario",
       avatar_url: m.profiles?.avatar_url ?? null,
       total_points: m.profiles?.total_points ?? 0,

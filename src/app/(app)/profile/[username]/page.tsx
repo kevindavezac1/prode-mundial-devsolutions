@@ -36,8 +36,8 @@ export default async function PublicProfilePage({
         id, home_score, away_score, outcome, points_earned,
         matches(
           id, scheduled_at, home_score, away_score,
-          home_team:teams!home_team_id(name, code),
-          away_team:teams!away_team_id(name, code)
+          home_team:teams!home_team_id(name, code, flag_url),
+          away_team:teams!away_team_id(name, code, flag_url)
         )
       `)
       .eq("user_id", profile.id)

@@ -11,6 +11,7 @@ export type League = {
 
 export type LeagueMember = {
   user_id: string;
+  username: string | null;
   display_name: string;
   avatar_url: string | null;
   total_points: number;
