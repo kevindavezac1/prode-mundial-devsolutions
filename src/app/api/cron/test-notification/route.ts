@@ -65,30 +65,31 @@ export async function GET(request: Request) {
     }
   }
 
-  // Email
-  try {
-    const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "Prode 2026 <notificaciones@prode2026.app>",
-      to: TEST_EMAIL,
-      subject: "🧪 Test - Prode Mundial 2026",
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080d1a;color:#fff;padding:24px;border-radius:12px">
-          <h2 style="margin-top:0">🧪 Test - Prode Mundial 2026</h2>
-          <p>Las notificaciones por email funcionan correctamente.</p>
-          <p style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.4)">
-            Prode Mundial 2026
-          </p>
-        </div>
-      `,
-    });
-    if (emailError) {
-      results.email = `error: ${emailError.message}`;
-    } else {
-      results.email = `ok: ${emailData?.id}`;
-    }
-  } catch (err) {
-    results.email = `error: ${err instanceof Error ? err.message : String(err)}`;
-  }
+  // Email — deshabilitado hasta tener dominio verificado en Resend
+  // try {
+  //   const { data: emailData, error: emailError } = await resend.emails.send({
+  //     from: "Prode 2026 <notificaciones@prode2026.app>",
+  //     to: TEST_EMAIL,
+  //     subject: "🧪 Test - Prode Mundial 2026",
+  //     html: `
+  //       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080d1a;color:#fff;padding:24px;border-radius:12px">
+  //         <h2 style="margin-top:0">🧪 Test - Prode Mundial 2026</h2>
+  //         <p>Las notificaciones por email funcionan correctamente.</p>
+  //         <p style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.4)">
+  //           Prode Mundial 2026
+  //         </p>
+  //       </div>
+  //     `,
+  //   });
+  //   if (emailError) {
+  //     results.email = `error: ${emailError.message}`;
+  //   } else {
+  //     results.email = `ok: ${emailData?.id}`;
+  //   }
+  // } catch (err) {
+  //   results.email = `error: ${err instanceof Error ? err.message : String(err)}`;
+  // }
+  results.email = "deshabilitado";
 
   return NextResponse.json({ ok: true, results });
 }

@@ -111,43 +111,43 @@ export async function GET(request: Request) {
       }
     }
 
-    // Email
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.admin.getUserById(sub.user_id);
-
-      if (user?.email) {
-        const matchListHtml = unpredicted
-          .map(
-            (m) =>
-              `<li style="margin-bottom:4px">${m.home_team.name} vs ${m.away_team.name}</li>`
-          )
-          .join("");
-
-        await resend.emails.send({
-          from: "Prode 2026 <notificaciones@prode2026.app>",
-          to: user.email,
-          subject: "⚽ Partidos por empezar — ¡Todavía podés predecir!",
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080d1a;color:#fff;padding:24px;border-radius:12px">
-              <h2 style="margin-top:0">⚽ Partidos en menos de 1 hora</h2>
-              <p>Todavía no predijiste estos partidos:</p>
-              <ul style="padding-left:20px">${matchListHtml}</ul>
-              <a href="https://prode2026.app/dashboard"
-                 style="display:inline-block;margin-top:16px;background:#e63946;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold">
-                Ir a predecir
-              </a>
-              <p style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.4)">
-                Prode Mundial 2026
-              </p>
-            </div>
-          `,
-        });
-      }
-    } catch {
-      // Email failure is non-fatal
-    }
+    // Email — deshabilitado hasta tener dominio verificado en Resend
+    // try {
+    //   const {
+    //     data: { user },
+    //   } = await supabase.auth.admin.getUserById(sub.user_id);
+    //
+    //   if (user?.email) {
+    //     const matchListHtml = unpredicted
+    //       .map(
+    //         (m) =>
+    //           `<li style="margin-bottom:4px">${m.home_team.name} vs ${m.away_team.name}</li>`
+    //       )
+    //       .join("");
+    //
+    //     await resend.emails.send({
+    //       from: "Prode 2026 <notificaciones@prode2026.app>",
+    //       to: user.email,
+    //       subject: "⚽ Partidos por empezar — ¡Todavía podés predecir!",
+    //       html: `
+    //         <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#080d1a;color:#fff;padding:24px;border-radius:12px">
+    //           <h2 style="margin-top:0">⚽ Partidos en menos de 1 hora</h2>
+    //           <p>Todavía no predijiste estos partidos:</p>
+    //           <ul style="padding-left:20px">${matchListHtml}</ul>
+    //           <a href="https://prode2026.app/dashboard"
+    //              style="display:inline-block;margin-top:16px;background:#e63946;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold">
+    //             Ir a predecir
+    //           </a>
+    //           <p style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.4)">
+    //             Prode Mundial 2026
+    //           </p>
+    //         </div>
+    //       `,
+    //     });
+    //   }
+    // } catch {
+    //   // Email failure is non-fatal
+    // }
 
     notified++;
   }
