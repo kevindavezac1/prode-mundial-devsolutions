@@ -13,9 +13,30 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   return output.buffer;
 }
 
+async function getSwRegistration(): Promise<ServiceWorkerRegistration> {
+  let reg = await navigator.serviceWorker.getRegistration("/");
+  if (!reg) {
+    reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  }
+  if (reg.active) return reg;
+  // Wait up to 8s for SW to activate
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("SW activation timeout")), 8000);
+    const target = reg.installing ?? reg.waiting;
+    if (!target) { clearTimeout(timer); reject(new Error("No SW found")); return; }
+    target.addEventListener("statechange", function handler() {
+      if (reg.active) {
+        clearTimeout(timer);
+        target.removeEventListener("statechange", handler);
+        resolve(reg);
+      }
+    });
+  });
+}
+
 export async function subscribeAndSave(): Promise<boolean> {
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await getSwRegistration();
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(

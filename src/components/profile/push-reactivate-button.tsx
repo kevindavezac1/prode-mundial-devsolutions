@@ -13,13 +13,34 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   return output.buffer;
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Timeout (${ms}ms): ${label}`)), ms)
-    ),
-  ]);
+async function getSwRegistration(): Promise<ServiceWorkerRegistration> {
+  let reg = await navigator.serviceWorker.getRegistration("/");
+  if (!reg) {
+    console.log("[push-reactivate] No SW found, registering /sw.js...");
+    reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  }
+  console.log("[push-reactivate] SW state:", reg.active?.state ?? "no active", "| installing:", !!reg.installing, "| waiting:", !!reg.waiting);
+  if (reg.active) return reg;
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("Service worker tardó demasiado en activarse (8s timeout). Cerrá y volvé a abrir la app.")),
+      8000
+    );
+    const target = reg.installing ?? reg.waiting;
+    if (!target) {
+      clearTimeout(timer);
+      reject(new Error("No hay service worker instalándose ni esperando."));
+      return;
+    }
+    target.addEventListener("statechange", function handler() {
+      console.log("[push-reactivate] SW statechange:", target.state);
+      if (reg.active) {
+        clearTimeout(timer);
+        target.removeEventListener("statechange", handler);
+        resolve(reg);
+      }
+    });
+  });
 }
 
 export function PushReactivateButton() {
@@ -42,12 +63,11 @@ export function PushReactivateButton() {
 
     try {
       let permission = Notification.permission;
+      console.log("[push-reactivate] Notification.permission:", permission);
+
       if (permission === "default") {
-        permission = await withTimeout(
-          Notification.requestPermission(),
-          15000,
-          "requestPermission"
-        );
+        permission = await Notification.requestPermission();
+        console.log("[push-reactivate] after request:", permission);
       }
 
       if (permission !== "granted") {
@@ -55,36 +75,23 @@ export function PushReactivateButton() {
         return;
       }
 
-      const reg = await withTimeout(
-        navigator.serviceWorker.ready,
-        10000,
-        "serviceWorker.ready"
-      );
+      const reg = await getSwRegistration();
+      console.log("[push-reactivate] got SW registration, subscribing...");
 
-      console.log("[push-reactivate] SW ready:", reg.active?.state);
-
-      const sub = await withTimeout(
-        reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-          ),
-        }),
-        10000,
-        "pushManager.subscribe"
-      );
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+        ),
+      });
 
       console.log("[push-reactivate] subscription endpoint:", sub.endpoint);
 
-      const res = await withTimeout(
-        fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subscription: sub.toJSON() }),
-        }),
-        10000,
-        "fetch /api/push/subscribe"
-      );
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: sub.toJSON() }),
+      });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
