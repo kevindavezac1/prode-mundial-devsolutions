@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import webpush from "web-push";
-import { Resend } from "resend";
+// import { Resend } from "resend"; // deshabilitado hasta tener dominio verificado
 
 webpush.setVapidDetails(
   process.env.VAPID_EMAIL!,
@@ -9,7 +9,7 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY!
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
 type MatchRow = {
   id: number;
