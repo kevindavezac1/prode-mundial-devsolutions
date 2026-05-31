@@ -13,6 +13,26 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   return output.buffer;
 }
 
+export async function subscribeAndSave(): Promise<boolean> {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+      ),
+    });
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscription: sub.toJSON() }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function PushPermissionBanner() {
   const [visible, setVisible] = useState(false);
 
@@ -20,14 +40,16 @@ export function PushPermissionBanner() {
     if (
       !("serviceWorker" in navigator) ||
       !("PushManager" in window) ||
-      !("Notification" in window) ||
-      localStorage.getItem(STORAGE_KEY)
+      !("Notification" in window)
     ) return;
 
-    if (Notification.permission !== "default") {
-      localStorage.setItem(STORAGE_KEY, "1");
+    // Permission already granted — subscribe silently without showing banner
+    if (Notification.permission === "granted") {
+      subscribeAndSave();
       return;
     }
+
+    if (localStorage.getItem(STORAGE_KEY) || Notification.permission !== "default") return;
 
     setVisible(true);
   }, []);
@@ -39,19 +61,7 @@ export function PushPermissionBanner() {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return;
 
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-      ),
-    });
-
-    await fetch("/api/push/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription: sub.toJSON() }),
-    });
+    await subscribeAndSave();
   }
 
   function handleDismiss() {

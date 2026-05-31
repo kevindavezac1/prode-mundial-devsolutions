@@ -6,6 +6,7 @@ import { ProfileStats } from "@/components/profile/profile-stats";
 import { EditDisplayName } from "@/components/profile/edit-display-name";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { logout } from "@/app/(app)/dashboard/actions";
+import { PushReactivateButton } from "@/components/profile/push-reactivate-button";
 
 export const metadata: Metadata = { title: "Mi perfil" };
 
@@ -90,6 +91,12 @@ export default async function ProfilePage() {
             <span>⚙️</span> Panel de administración
           </Link>
         )}
+
+        {/* Notificaciones */}
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}>Notificaciones</p>
+          <PushReactivateButton />
+        </div>
 
         {/* Fix 1 — Logout */}
         <div
