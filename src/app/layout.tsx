@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { APP_NAME, APP_DESCRIPTION } from "@/constants";
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className="min-h-screen antialiased" style={{ background: "#07090f", color: "#ffffff" }}>
         {children}
         <Toaster position="top-center" richColors />
+        <Analytics />
       </body>
     </html>
   );
