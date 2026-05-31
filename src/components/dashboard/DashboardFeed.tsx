@@ -7,7 +7,6 @@ import { PredictionSheet } from "@/components/match/PredictionSheet";
 import { TeamPicker } from "@/components/dashboard/TeamPicker";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import { isFinished, isLive, getMatchState } from "@/lib/match-helpers";
-import { PushPermissionBanner } from "@/components/PushPermissionBanner";
 import type { MatchWithTeams, Prediction, Team } from "@/types/matches";
 import type { PredictionSheetMatch, PredictionSheetExisting } from "@/components/match/PredictionSheet";
 
@@ -278,8 +277,6 @@ export function DashboardFeed({ displayName }: Props) {
 
   return (
     <div className="min-h-screen" style={{ background: "#07090f" }}>
-
-      <PushPermissionBanner />
 
       {/* Greeting strip */}
       <div
