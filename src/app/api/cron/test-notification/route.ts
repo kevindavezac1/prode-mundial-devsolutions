@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 
   // Email
   try {
-    await resend.emails.send({
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: "Prode 2026 <notificaciones@prode2026.app>",
       to: TEST_EMAIL,
       subject: "🧪 Test - Prode Mundial 2026",
@@ -81,7 +81,11 @@ export async function GET(request: Request) {
         </div>
       `,
     });
-    results.email = "ok";
+    if (emailError) {
+      results.email = `error: ${emailError.message}`;
+    } else {
+      results.email = `ok: ${emailData?.id}`;
+    }
   } catch (err) {
     results.email = `error: ${err instanceof Error ? err.message : String(err)}`;
   }
