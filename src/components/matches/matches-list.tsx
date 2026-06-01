@@ -114,6 +114,17 @@ export function MatchesList({ matches }: Props) {
   const canPrev = selectedIdx > 0;
   const canNext = selectedIdx < groups.length - 1;
 
+  const relativeLabel = useMemo(() => {
+    if (!current) return null;
+    const todayKey = new Date().toLocaleDateString("es-AR", { timeZone: localTZ });
+    const tomorrowKey = new Date(Date.now() + 86400000).toLocaleDateString("es-AR", { timeZone: localTZ });
+    const yesterdayKey = new Date(Date.now() - 86400000).toLocaleDateString("es-AR", { timeZone: localTZ });
+    if (current.key === todayKey) return "Hoy";
+    if (current.key === tomorrowKey) return "Mañana";
+    if (current.key === yesterdayKey) return "Ayer";
+    return null;
+  }, [current, localTZ]);
+
   return (
     <div>
       {/* Date navigation */}
@@ -136,6 +147,11 @@ export function MatchesList({ matches }: Props) {
         </button>
 
         <div className="flex-1 text-center">
+          {relativeLabel && (
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "#60a5fa" }}>
+              {relativeLabel}
+            </p>
+          )}
           <p className="text-base font-bold capitalize tracking-wide" style={{ color: "rgba(255,255,255,0.97)" }}>
             {current?.label ?? "–"}
           </p>

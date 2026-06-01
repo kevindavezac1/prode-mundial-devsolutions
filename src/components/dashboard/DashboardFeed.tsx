@@ -350,40 +350,46 @@ export function DashboardFeed({ displayName }: Props) {
       {/* Date navigator */}
       {!selectedTeam && allDates.length > 0 && (
         <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          className="flex items-center gap-2 px-3 py-3"
+          style={{
+            borderBottom: "2px solid rgba(255,255,255,0.12)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+            background: "rgba(7,9,15,0.97)",
+          }}
         >
           <button
             onClick={() => setSelectedDayIndex(Math.max(0, effectiveDayIndex - 1))}
             disabled={effectiveDayIndex === 0}
+            className="w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 hover:bg-white/10 disabled:pointer-events-none"
             style={{
-              color:
-                effectiveDayIndex === 0
-                  ? "rgba(255,255,255,0.15)"
-                  : "rgba(255,255,255,0.6)",
-              fontSize: "22px",
+              color: effectiveDayIndex === 0 ? "rgba(255,255,255,0.2)" : "#FFFFFF",
+              fontSize: "24px",
               lineHeight: 1,
-              padding: "4px 10px",
-              cursor: effectiveDayIndex === 0 ? "default" : "pointer",
             }}
           >
-            ‹
+            ←
           </button>
 
-          <div className="flex flex-col items-center gap-0.5">
+          <div className="flex-1 flex flex-col items-center gap-0.5">
             {isSelectedToday && (
               <span
-                className="text-[9px] font-bold tracking-widest"
+                className="text-[10px] font-bold tracking-widest uppercase"
                 style={{ color: "#E4002B" }}
               >
                 HOY
               </span>
             )}
             <span
-              className="font-bold text-[11px] text-center"
-              style={{ color: "rgba(255,255,255,0.75)", letterSpacing: "1.5px" }}
+              className="font-bold text-sm text-center"
+              style={{ color: "#FFFFFF", letterSpacing: "1px" }}
             >
               {selectedDate ? formatDateLabel(selectedDate, localTZ) : ""}
+            </span>
+            <span
+              className="text-[10px]"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              {effectiveDayIndex + 1} / {allDates.length}
             </span>
           </div>
 
@@ -392,19 +398,14 @@ export function DashboardFeed({ displayName }: Props) {
               setSelectedDayIndex(Math.min(allDates.length - 1, effectiveDayIndex + 1))
             }
             disabled={effectiveDayIndex === allDates.length - 1}
+            className="w-11 h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 hover:bg-white/10 disabled:pointer-events-none"
             style={{
-              color:
-                effectiveDayIndex === allDates.length - 1
-                  ? "rgba(255,255,255,0.15)"
-                  : "rgba(255,255,255,0.6)",
-              fontSize: "22px",
+              color: effectiveDayIndex === allDates.length - 1 ? "rgba(255,255,255,0.2)" : "#FFFFFF",
+              fontSize: "24px",
               lineHeight: 1,
-              padding: "4px 10px",
-              cursor:
-                effectiveDayIndex === allDates.length - 1 ? "default" : "pointer",
             }}
           >
-            ›
+            →
           </button>
         </div>
       )}
