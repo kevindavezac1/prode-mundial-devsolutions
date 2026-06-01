@@ -118,36 +118,42 @@ export function MatchesList({ matches }: Props) {
     <div>
       {/* Date navigation */}
       <div
-        className="sticky top-[60px] z-10 backdrop-blur flex items-center px-2 py-2 gap-1"
-        style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+        className="sticky top-[60px] z-10 backdrop-blur-sm flex items-center px-3 py-3 gap-2"
+        style={{
+          background: "rgba(7,9,15,0.97)",
+          borderBottom: "2px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+        }}
       >
         <button
           onClick={() => setSelectedIdx((i) => i - 1)}
           disabled={!canPrev}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
-          style={{ color: "rgba(255,255,255,0.5)" }}
+          className="w-11 h-11 flex items-center justify-center rounded-xl text-2xl font-light transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-90 hover:bg-white/10 cursor-pointer"
+          style={{ color: "rgba(255,255,255,0.9)" }}
           aria-label="Día anterior"
         >
-          ‹
+          ←
         </button>
 
         <div className="flex-1 text-center">
-          <p className="text-sm font-semibold capitalize text-white">
+          <p className="text-base font-bold capitalize tracking-wide" style={{ color: "rgba(255,255,255,0.97)" }}>
             {current?.label ?? "–"}
           </p>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-            {current ? `${current.matches.length} partido${current.matches.length !== 1 ? "s" : ""}` : ""}
+          <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+            {current
+              ? `${current.matches.length} partido${current.matches.length !== 1 ? "s" : ""} · ${selectedIdx + 1} / ${groups.length}`
+              : ""}
           </p>
         </div>
 
         <button
           onClick={() => setSelectedIdx((i) => i + 1)}
           disabled={!canNext}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-lg transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
-          style={{ color: "rgba(255,255,255,0.5)" }}
+          className="w-11 h-11 flex items-center justify-center rounded-xl text-2xl font-light transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-90 hover:bg-white/10 cursor-pointer"
+          style={{ color: "rgba(255,255,255,0.9)" }}
           aria-label="Día siguiente"
         >
-          ›
+          →
         </button>
       </div>
 
