@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { RankingsTabs } from "@/components/rankings/rankings-tabs";
 import type { RankingEntry, LeagueRankEntry } from "@/components/rankings/rankings-tabs";
+import { SponsorsCarousel } from "@/components/sponsors/SponsorsCarousel";
 
 type UserEntry = RankingEntry & { rank: number };
 
@@ -70,6 +71,7 @@ export default async function RankingsPage() {
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Top jugadores</p>
         </div>
       </header>
+      <SponsorsCarousel />
       <div className="p-4">
         <RankingsTabs rankings={rankings} leagueRanks={leagueRanks} userId={user.id} userEntry={userEntry} />
       </div>

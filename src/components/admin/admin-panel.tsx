@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { submitResult, toggleSponsorActive } from "@/app/(protected)/admin/actions";
+import { submitResult, toggleSponsorActive, uploadSponsorLogo } from "@/app/(protected)/admin/actions";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import type { MatchWithTeams } from "@/types/matches";
 
 export type Sponsor = {
   id: string;
   nombre: string;
+  logo_url: string | null;
   descripcion: string | null;
   link_url: string | null;
   activo: boolean;
@@ -112,6 +113,12 @@ function SponsorsSection({
   onRefresh: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [logoUrls, setLogoUrls] = useState<Record<string, string>>(
+    Object.fromEntries(sponsors.map((s) => [s.id, s.logo_url ?? ""]))
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const activeUploadRef = useRef<string | null>(null);
 
   function handleToggle(s: Sponsor) {
     startTransition(async () => {
@@ -125,8 +132,46 @@ function SponsorsSection({
     });
   }
 
+  function handleLogoClick(sponsorId: string) {
+    activeUploadRef.current = sponsorId;
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    const sponsorId = activeUploadRef.current;
+    e.target.value = "";
+    if (!file || !sponsorId) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) { toast.error("Usá jpg, png o webp."); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("El archivo supera 2MB."); return; }
+
+    const formData = new FormData();
+    formData.append("logo", file);
+
+    setUploadingId(sponsorId);
+    const result = await uploadSponsorLogo(sponsorId, formData);
+    setUploadingId(null);
+
+    if ("error" in result) {
+      toast.error(result.error);
+    } else {
+      toast.success("Logo actualizado.");
+      setLogoUrls((prev) => ({ ...prev, [sponsorId]: result.url }));
+    }
+  }
+
   return (
     <div className="mt-8 space-y-3">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       <div
         className="flex items-center gap-2 pb-2"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
@@ -142,71 +187,119 @@ function SponsorsSection({
           Sin sponsors. Agregar desde Supabase.
         </p>
       ) : (
-        sponsors.map((s) => (
-          <div
-            key={s.id}
-            className="rounded-2xl p-4 space-y-2"
-            style={{
-              background: s.activo
-                ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
-                : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
-              border: s.activo
-                ? "1px solid rgba(74,172,223,0.12)"
-                : "1px solid rgba(255,255,255,0.06)",
-              opacity: isPending ? 0.6 : 1,
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm text-white">{s.nombre}</p>
-                {s.descripcion && (
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    {s.descripcion}
-                  </p>
-                )}
-                {s.link_url && (
-                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(116,172,223,0.6)" }}>
-                    {s.link_url}
-                  </p>
-                )}
+        sponsors.map((s) => {
+          const logoUrl = logoUrls[s.id];
+          const isUploading = uploadingId === s.id;
+
+          return (
+            <div
+              key={s.id}
+              className="rounded-2xl p-4 space-y-3"
+              style={{
+                background: s.activo
+                  ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
+                  : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
+                border: s.activo
+                  ? "1px solid rgba(74,172,223,0.12)"
+                  : "1px solid rgba(255,255,255,0.06)",
+                opacity: isPending ? 0.6 : 1,
+              }}
+            >
+              {/* Top row: logo + info + toggle */}
+              <div className="flex items-start gap-3">
+                {/* Logo preview + upload */}
+                <button
+                  onClick={() => handleLogoClick(s.id)}
+                  disabled={isUploading}
+                  className="shrink-0 relative group"
+                  title="Subir logo"
+                >
+                  <div
+                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                    }}
+                  >
+                    {isUploading ? (
+                      <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.4)" }}>...</span>
+                    ) : logoUrl ? (
+                      <img src={logoUrl} alt={s.nombre} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {s.nombre.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: "rgba(0,0,0,0.55)" }}
+                  >
+                    <span className="text-[9px] text-white font-bold">SUBIR</span>
+                  </div>
+                </button>
+
+                {/* Info */}
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-white">{s.nombre}</p>
+                  {s.descripcion && (
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                      {s.descripcion}
+                    </p>
+                  )}
+                  {s.link_url && (
+                    <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(116,172,223,0.6)" }}>
+                      {s.link_url}
+                    </p>
+                  )}
+                </div>
+
+                {/* Toggle */}
+                <button
+                  onClick={() => handleToggle(s)}
+                  disabled={isPending}
+                  className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                  style={
+                    s.activo
+                      ? {
+                          background: "rgba(255,255,255,0.07)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          color: "rgba(255,255,255,0.6)",
+                        }
+                      : {
+                          background: "rgba(74,172,223,0.12)",
+                          border: "1px solid rgba(74,172,223,0.25)",
+                          color: "rgba(116,172,223,0.9)",
+                        }
+                  }
+                >
+                  {s.activo ? "Desactivar" : "Activar"}
+                </button>
               </div>
-              <button
-                onClick={() => handleToggle(s)}
-                disabled={isPending}
-                className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                style={
-                  s.activo
-                    ? {
-                        background: "rgba(255,255,255,0.07)",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        color: "rgba(255,255,255,0.6)",
-                      }
-                    : {
-                        background: "rgba(74,172,223,0.12)",
-                        border: "1px solid rgba(74,172,223,0.25)",
-                        color: "rgba(116,172,223,0.9)",
-                      }
-                }
-              >
-                {s.activo ? "Desactivar" : "Activar"}
-              </button>
+
+              {/* Status row */}
+              <div className="flex items-center gap-3">
+                <span
+                  className="text-[10px] font-bold"
+                  style={{ color: s.activo ? "#4ade80" : "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}
+                >
+                  {s.activo ? "● Activo" : "○ Inactivo"}
+                </span>
+                <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+                  · orden {s.orden}
+                </span>
+                <button
+                  onClick={() => handleLogoClick(s.id)}
+                  disabled={isUploading}
+                  className="text-[10px] ml-auto disabled:opacity-40"
+                  style={{ color: "rgba(116,172,223,0.6)" }}
+                >
+                  {isUploading ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span
-                className="text-[10px] font-bold"
-                style={{
-                  color: s.activo ? "#4ade80" : "rgba(255,255,255,0.25)",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                {s.activo ? "● Activo" : "○ Inactivo"}
-              </span>
-              <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-                · orden {s.orden}
-              </span>
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

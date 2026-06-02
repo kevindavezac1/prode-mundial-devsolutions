@@ -15,6 +15,53 @@ async function assertAdmin(): Promise<string> {
   return user.id;
 }
 
+export async function uploadSponsorLogo(
+  sponsorId: string,
+  formData: FormData
+): Promise<{ ok: true; url: string } | { error: string }> {
+  try {
+    await assertAdmin();
+
+    const file = formData.get("logo") as File | null;
+    if (!file || file.size === 0) return { error: "No se recibió archivo." };
+    if (file.size > 2 * 1024 * 1024) return { error: "El archivo supera 2MB." };
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      return { error: "Formato no permitido. Usá jpg, png o webp." };
+    }
+
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `${sponsorId}/logo.${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const { error: uploadError } = await supabase.storage
+      .from("sponsors")
+      .upload(path, buffer, { contentType: file.type, upsert: true });
+
+    if (uploadError) return { error: uploadError.message };
+
+    const { data: { publicUrl } } = supabase.storage.from("sponsors").getPublicUrl(path);
+    const url = `${publicUrl}?t=${Date.now()}`;
+
+    const { error: dbError } = await supabase
+      .from("sponsors")
+      .update({ logo_url: url })
+      .eq("id", sponsorId);
+
+    if (dbError) return { error: dbError.message };
+
+    return { ok: true, url };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Error desconocido." };
+  }
+}
+
 export async function toggleSponsorActive(
   sponsorId: string,
   activo: boolean

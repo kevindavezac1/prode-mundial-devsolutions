@@ -35,7 +35,7 @@ export default async function AdminPage() {
 
   const { data: sponsors } = await supabase
     .from("sponsors")
-    .select("id, nombre, descripcion, link_url, activo, orden")
+    .select("id, nombre, logo_url, descripcion, link_url, activo, orden")
     .order("orden");
 
   return (
