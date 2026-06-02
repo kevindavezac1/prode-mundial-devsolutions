@@ -10,7 +10,9 @@ import type { MatchWithTeams } from "@/types/matches";
 type Props = { matches: MatchWithTeams[] };
 
 function getMatchDate(scheduledAt: string): string {
-  return scheduledAt.split("T")[0];
+  return new Date(scheduledAt).toLocaleDateString("sv-SE", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
 }
 
 function formatDateLabel(dateStr: string): string {

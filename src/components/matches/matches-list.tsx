@@ -129,7 +129,7 @@ export function MatchesList({ matches }: Props) {
     <div>
       {/* Date navigation */}
       <div
-        className="sticky top-[60px] z-10 backdrop-blur-sm flex items-center justify-center px-4 py-3"
+        className="sticky top-[60px] z-10 backdrop-blur-sm px-4 py-3"
         style={{
           background: "rgba(7,9,15,0.97)",
           borderBottom: "2px solid rgba(255,255,255,0.12)",
@@ -137,34 +137,32 @@ export function MatchesList({ matches }: Props) {
         }}
       >
         <div
-          className="flex items-center gap-1"
+          className="flex items-center justify-between rounded-2xl px-3 py-2.5"
           style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "12px",
-            padding: "10px 20px",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.07)",
           }}
         >
           <button
             onClick={() => setSelectedIdx((i) => i - 1)}
             disabled={!canPrev}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-2xl font-light transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-90 hover:bg-white/10 cursor-pointer"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-lg font-bold transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-95 hover:bg-white/10 cursor-pointer"
+            style={{ color: "white" }}
             aria-label="Día anterior"
           >
             ←
           </button>
 
-          <div className="min-w-[200px] text-center px-2">
+          <div className="text-center">
             {relativeLabel && (
               <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "#60a5fa" }}>
                 {relativeLabel}
               </p>
             )}
-            <p className="text-base font-bold capitalize tracking-wide" style={{ color: "rgba(255,255,255,0.97)" }}>
+            <p className="font-bold text-sm text-white capitalize">
               {current?.label ?? "–"}
             </p>
-            <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
               {current
                 ? `${current.matches.length} partido${current.matches.length !== 1 ? "s" : ""} · ${selectedIdx + 1} / ${groups.length}`
                 : ""}
@@ -174,8 +172,8 @@ export function MatchesList({ matches }: Props) {
           <button
             onClick={() => setSelectedIdx((i) => i + 1)}
             disabled={!canNext}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-2xl font-light transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-90 hover:bg-white/10 cursor-pointer"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-lg font-bold transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-95 hover:bg-white/10 cursor-pointer"
+            style={{ color: "white" }}
             aria-label="Día siguiente"
           >
             →
