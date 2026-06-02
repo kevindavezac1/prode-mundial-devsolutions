@@ -15,6 +15,27 @@ async function assertAdmin(): Promise<string> {
   return user.id;
 }
 
+export async function toggleSponsorActive(
+  sponsorId: string,
+  activo: boolean
+): Promise<{ ok: true } | { error: string }> {
+  try {
+    await assertAdmin();
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { error } = await supabase
+      .from("sponsors")
+      .update({ activo })
+      .eq("id", sponsorId);
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Error desconocido." };
+  }
+}
+
 export async function submitResult(
   matchId: number,
   homeScore: number,

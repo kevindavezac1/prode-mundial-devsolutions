@@ -3,11 +3,20 @@
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { submitResult } from "@/app/(protected)/admin/actions";
+import { submitResult, toggleSponsorActive } from "@/app/(protected)/admin/actions";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import type { MatchWithTeams } from "@/types/matches";
 
-type Props = { matches: MatchWithTeams[] };
+export type Sponsor = {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  link_url: string | null;
+  activo: boolean;
+  orden: number;
+};
+
+type Props = { matches: MatchWithTeams[]; sponsors: Sponsor[] };
 
 function getMatchDate(scheduledAt: string): string {
   return new Date(scheduledAt).toLocaleDateString("sv-SE", {
@@ -95,7 +104,115 @@ function StatusBadge({ status }: { status: MatchWithTeams["status"] }) {
   );
 }
 
-export function AdminPanel({ matches }: Props) {
+function SponsorsSection({
+  sponsors,
+  onRefresh,
+}: {
+  sponsors: Sponsor[];
+  onRefresh: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  function handleToggle(s: Sponsor) {
+    startTransition(async () => {
+      const result = await toggleSponsorActive(s.id, !s.activo);
+      if ("error" in result) {
+        toast.error(result.error);
+      } else {
+        toast.success(s.activo ? "Sponsor desactivado." : "Sponsor activado.");
+        onRefresh();
+      }
+    });
+  }
+
+  return (
+    <div className="mt-8 space-y-3">
+      <div
+        className="flex items-center gap-2 pb-2"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <h2 className="font-bold text-base text-white flex-1">Sponsors</h2>
+        <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>
+          {sponsors.filter((s) => s.activo).length} activo{sponsors.filter((s) => s.activo).length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {sponsors.length === 0 ? (
+        <p className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.3)" }}>
+          Sin sponsors. Agregar desde Supabase.
+        </p>
+      ) : (
+        sponsors.map((s) => (
+          <div
+            key={s.id}
+            className="rounded-2xl p-4 space-y-2"
+            style={{
+              background: s.activo
+                ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
+                : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
+              border: s.activo
+                ? "1px solid rgba(74,172,223,0.12)"
+                : "1px solid rgba(255,255,255,0.06)",
+              opacity: isPending ? 0.6 : 1,
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-sm text-white">{s.nombre}</p>
+                {s.descripcion && (
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    {s.descripcion}
+                  </p>
+                )}
+                {s.link_url && (
+                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(116,172,223,0.6)" }}>
+                    {s.link_url}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => handleToggle(s)}
+                disabled={isPending}
+                className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                style={
+                  s.activo
+                    ? {
+                        background: "rgba(255,255,255,0.07)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        color: "rgba(255,255,255,0.6)",
+                      }
+                    : {
+                        background: "rgba(74,172,223,0.12)",
+                        border: "1px solid rgba(74,172,223,0.25)",
+                        color: "rgba(116,172,223,0.9)",
+                      }
+                }
+              >
+                {s.activo ? "Desactivar" : "Activar"}
+              </button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-[10px] font-bold"
+                style={{
+                  color: s.activo ? "#4ade80" : "rgba(255,255,255,0.25)",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {s.activo ? "● Activo" : "○ Inactivo"}
+              </span>
+              <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
+                · orden {s.orden}
+              </span>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+export function AdminPanel({ matches, sponsors }: Props) {
   const router = useRouter();
   const [editing, setEditing] = useState<MatchWithTeams | null>(null);
   const [homeVal, setHomeVal] = useState("");
@@ -333,6 +450,9 @@ export function AdminPanel({ matches }: Props) {
           );
         })}
       </div>
+
+      {/* Sponsors section */}
+      <SponsorsSection sponsors={sponsors} onRefresh={() => router.refresh()} />
 
       {/* Modal */}
       {editing && (

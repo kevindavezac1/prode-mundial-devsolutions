@@ -282,6 +282,39 @@ export type Database = {
           },
         ]
       }
+      sponsors: {
+        Row: {
+          id: string
+          nombre: string
+          logo_url: string | null
+          descripcion: string | null
+          link_url: string | null
+          activo: boolean
+          orden: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          logo_url?: string | null
+          descripcion?: string | null
+          link_url?: string | null
+          activo?: boolean
+          orden?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          logo_url?: string | null
+          descripcion?: string | null
+          link_url?: string | null
+          activo?: boolean
+          orden?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       scoring_rules: {
         Row: {
           description: string | null

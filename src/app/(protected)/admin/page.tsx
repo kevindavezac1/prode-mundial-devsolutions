@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPanel } from "@/components/admin/admin-panel";
 import type { MatchWithTeams } from "@/types/matches";
+import type { Sponsor } from "@/components/admin/admin-panel";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -32,6 +33,11 @@ export default async function AdminPage() {
     `)
     .order("scheduled_at");
 
+  const { data: sponsors } = await supabase
+    .from("sponsors")
+    .select("id, nombre, descripcion, link_url, activo, orden")
+    .order("orden");
+
   return (
     <main className="min-h-screen pb-8">
       <header
@@ -45,7 +51,10 @@ export default async function AdminPage() {
         </div>
       </header>
       <div className="p-4">
-        <AdminPanel matches={(matches ?? []) as unknown as MatchWithTeams[]} />
+        <AdminPanel
+          matches={(matches ?? []) as unknown as MatchWithTeams[]}
+          sponsors={(sponsors ?? []) as Sponsor[]}
+        />
       </div>
     </main>
   );

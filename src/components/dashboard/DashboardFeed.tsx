@@ -9,6 +9,7 @@ import { FlagEmoji } from "@/components/match/FlagEmoji";
 import { isFinished, isLive, getMatchState } from "@/lib/match-helpers";
 import type { MatchWithTeams, Prediction, Team } from "@/types/matches";
 import type { PredictionSheetMatch, PredictionSheetExisting } from "@/components/match/PredictionSheet";
+import { SponsorsCarousel } from "@/components/sponsors/SponsorsCarousel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -305,6 +306,8 @@ export function DashboardFeed({ displayName }: Props) {
           )}
         </p>
       </div>
+
+      <SponsorsCarousel />
 
       {/* Team filter bar */}
       <div
