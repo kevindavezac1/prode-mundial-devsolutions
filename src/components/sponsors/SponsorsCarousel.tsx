@@ -26,7 +26,15 @@ export function SponsorsCarousel() {
       .eq("activo", true)
       .order("orden")
       .then(({ data }) => {
-        if (data && data.length > 0) setSponsors(data);
+        if (data && data.length > 0) {
+          setSponsors(data);
+          data.forEach((s) => {
+            if (s.logo_url) {
+              const img = new Image();
+              img.src = s.logo_url;
+            }
+          });
+        }
       });
   }, []);
 
