@@ -70,8 +70,8 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
             disabled={isGooglePending}
             className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
             style={{
-              background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-              boxShadow: "0 4px 16px rgba(228,0,43,0.25)",
+              background: "linear-gradient(135deg, #74ACDF 0%, #4a8bc4 100%)",
+              boxShadow: "0 4px 20px rgba(116,172,223,0.3)",
               color: "white",
             }}
           >
@@ -106,8 +106,8 @@ export function RegisterForm({ redirectTo }: { redirectTo?: string }) {
         disabled={anyPending}
         className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
         style={{
-          background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-          boxShadow: "0 4px 16px rgba(228,0,43,0.25)",
+          background: "linear-gradient(135deg, #74ACDF 0%, #4a8bc4 100%)",
+          boxShadow: "0 4px 20px rgba(116,172,223,0.3)",
           color: "white",
           letterSpacing: "0.5px",
         }}

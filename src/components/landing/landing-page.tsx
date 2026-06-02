@@ -156,8 +156,8 @@ export function LandingPage() {
               className="w-full flex items-center justify-center gap-3 rounded-xl font-bold text-sm text-white transition-all active:scale-[0.97] disabled:opacity-70"
               style={{
                 height: "52px",
-                background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-                boxShadow: "0 4px 24px rgba(228,0,43,0.35)",
+                background: "linear-gradient(135deg, #74ACDF 0%, #4a8bc4 100%)",
+                boxShadow: "0 4px 20px rgba(116,172,223,0.3)",
                 letterSpacing: "1.5px",
               }}
             >

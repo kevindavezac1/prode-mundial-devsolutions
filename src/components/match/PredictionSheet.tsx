@@ -247,20 +247,20 @@ export function PredictionSheet({
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="mt-6 w-full py-4 rounded-xl font-extrabold text-[11px] text-white transition-all active:scale-[0.97] disabled:opacity-50"
+              className="mt-6 w-full py-4 font-extrabold text-[11px] text-white transition-all active:scale-[0.97] disabled:opacity-50"
               style={{
-                background: submitting
-                  ? "rgba(228,0,43,0.5)"
-                  : "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-                letterSpacing: "3px",
-                boxShadow: submitting ? "none" : "0 4px 20px rgba(228,0,43,0.3)",
+                background: "linear-gradient(135deg, #74ACDF, #4a8bc4)",
+                borderRadius: "999px",
+                letterSpacing: "2px",
+                boxShadow: submitting ? "none" : "0 4px 20px rgba(116,172,223,0.3)",
+                border: "none",
               }}
             >
               {submitting
                 ? "GUARDANDO..."
                 : isEditing
-                ? "ACTUALIZAR PREDICCIÓN ⚽"
-                : "ENVIAR PREDICCIÓN ⚽"}
+                ? "ACTUALIZAR PREDICCIÓN"
+                : "ENVIAR PREDICCIÓN"}
             </button>
           </>
         )}
