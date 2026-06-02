@@ -364,7 +364,7 @@ function SponsorsSection({
       {/* List */}
       {sponsors.length === 0 && formMode.type === "none" && (
         <p className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.3)" }}>
-          Sin sponsors. Usá "+ Agregar" para crear uno.
+          Sin sponsors. Usá &quot;+ Agregar&quot; para crear uno.
         </p>
       )}
 
