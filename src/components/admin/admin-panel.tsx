@@ -105,6 +105,185 @@ function StatusBadge({ status }: { status: MatchWithTeams["status"] }) {
   );
 }
 
+function SponsorForm({
+  mode,
+  sponsor,
+  onSuccess,
+  onCancel,
+}: {
+  mode: "create" | "edit";
+  sponsor?: Sponsor;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const [nombre, setNombre] = useState(sponsor?.nombre ?? "");
+  const [descripcion, setDescripcion] = useState(sponsor?.descripcion ?? "");
+  const [linkUrl, setLinkUrl] = useState(sponsor?.link_url ?? "");
+  const [activo, setActivo] = useState(sponsor?.activo ?? true);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>(sponsor?.logo_url ?? "");
+  const [submitting, setSubmitting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) { toast.error("Usá jpg, png o webp."); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("El archivo supera 2MB."); return; }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    e.target.value = "";
+  }
+
+  async function handleSubmit() {
+    if (!nombre.trim()) { toast.error("El nombre es requerido."); return; }
+    setSubmitting(true);
+    try {
+      let sponsorId = sponsor?.id;
+
+      if (mode === "create") {
+        const res = await fetch("/api/admin/sponsors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre: nombre.trim(), descripcion: descripcion.trim() || null, link_url: linkUrl.trim() || null, activo }),
+        });
+        const json = await res.json();
+        if (!res.ok) { toast.error(json.error ?? "Error al crear."); return; }
+        sponsorId = json.data.id;
+      } else {
+        const res = await fetch(`/api/admin/sponsors/${sponsorId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre: nombre.trim(), descripcion: descripcion.trim() || null, link_url: linkUrl.trim() || null, activo }),
+        });
+        const json = await res.json();
+        if (!res.ok) { toast.error(json.error ?? "Error al guardar."); return; }
+      }
+
+      if (logoFile && sponsorId) {
+        const fd = new FormData();
+        fd.append("logo", logoFile);
+        const result = await uploadSponsorLogo(sponsorId, fd);
+        if ("error" in result) { toast.error(result.error); return; }
+      }
+
+      toast.success(mode === "create" ? "Sponsor creado." : "Sponsor guardado.");
+      onSuccess();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      className="rounded-2xl p-4 space-y-3"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}
+    >
+      <p className="font-bold text-sm text-white">
+        {mode === "create" ? "Nuevo sponsor" : "Editar sponsor"}
+      </p>
+
+      {/* Logo */}
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={() => fileRef.current?.click()} className="shrink-0">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+          >
+            {logoPreview ? (
+              <img src={logoPreview} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs text-center leading-tight px-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+                + Logo
+              </span>
+            )}
+          </div>
+        </button>
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+          {logoFile ? logoFile.name : "jpg, png o webp · máx 2MB"}
+        </p>
+      </div>
+
+      {/* Nombre */}
+      <div>
+        <label className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "1px" }}>NOMBRE *</label>
+        <input
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="mt-1 w-full rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          placeholder="Nombre del sponsor"
+        />
+      </div>
+
+      {/* Descripción */}
+      <div>
+        <label className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "1px" }}>DESCRIPCIÓN / OFERTA</label>
+        <input
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          className="mt-1 w-full rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          placeholder="20% off mostrando tu puntaje"
+        />
+      </div>
+
+      {/* Link */}
+      <div>
+        <label className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "1px" }}>LINK URL</label>
+        <input
+          value={linkUrl}
+          onChange={(e) => setLinkUrl(e.target.value)}
+          className="mt-1 w-full rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          placeholder="https://instagram.com/..."
+          type="url"
+        />
+      </div>
+
+      {/* Activo */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-white">Activo al crear</span>
+        <button
+          type="button"
+          onClick={() => setActivo((v) => !v)}
+          className="w-11 h-6 rounded-full relative transition-colors"
+          style={{ background: activo ? "rgba(74,172,223,0.6)" : "rgba(255,255,255,0.1)" }}
+        >
+          <span
+            className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all"
+            style={{ left: activo ? "calc(100% - 20px)" : "4px" }}
+          />
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={submitting}
+          className="flex-1 h-10 rounded-xl text-sm font-semibold"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="flex-1 h-10 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+          style={{ background: "linear-gradient(135deg, #74ACDF 0%, #4a8bc4 100%)" }}
+        >
+          {submitting ? "Guardando..." : mode === "create" ? "Crear" : "Guardar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SponsorsSection({
   sponsors,
   onRefresh,
@@ -113,12 +292,9 @@ function SponsorsSection({
   onRefresh: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [logoUrls, setLogoUrls] = useState<Record<string, string>>(
-    Object.fromEntries(sponsors.map((s) => [s.id, s.logo_url ?? ""]))
-  );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const activeUploadRef = useRef<string | null>(null);
+  const [formMode, setFormMode] = useState<{ type: "none" } | { type: "create" } | { type: "edit"; sponsor: Sponsor }>({ type: "none" });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function handleToggle(s: Sponsor) {
     startTransition(async () => {
@@ -132,46 +308,23 @@ function SponsorsSection({
     });
   }
 
-  function handleLogoClick(sponsorId: string) {
-    activeUploadRef.current = sponsorId;
-    fileInputRef.current?.click();
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    const sponsorId = activeUploadRef.current;
-    e.target.value = "";
-    if (!file || !sponsorId) return;
-
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowed.includes(file.type)) { toast.error("Usá jpg, png o webp."); return; }
-    if (file.size > 2 * 1024 * 1024) { toast.error("El archivo supera 2MB."); return; }
-
-    const formData = new FormData();
-    formData.append("logo", file);
-
-    setUploadingId(sponsorId);
-    const result = await uploadSponsorLogo(sponsorId, formData);
-    setUploadingId(null);
-
-    if ("error" in result) {
-      toast.error(result.error);
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    const res = await fetch(`/api/admin/sponsors/${id}`, { method: "DELETE" });
+    setDeletingId(null);
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      toast.error(json.error ?? "Error al eliminar.");
     } else {
-      toast.success("Logo actualizado.");
-      setLogoUrls((prev) => ({ ...prev, [sponsorId]: result.url }));
+      toast.success("Sponsor eliminado.");
+      setConfirmDeleteId(null);
+      onRefresh();
     }
   }
 
   return (
     <div className="mt-8 space-y-3">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-
+      {/* Header */}
       <div
         className="flex items-center gap-2 pb-2"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
@@ -180,127 +333,149 @@ function SponsorsSection({
         <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>
           {sponsors.filter((s) => s.activo).length} activo{sponsors.filter((s) => s.activo).length !== 1 ? "s" : ""}
         </span>
+        {formMode.type === "none" && (
+          <button
+            onClick={() => setFormMode({ type: "create" })}
+            className="h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95"
+            style={{ background: "rgba(74,172,223,0.15)", border: "1px solid rgba(74,172,223,0.3)", color: "rgba(116,172,223,0.9)" }}
+          >
+            + Agregar
+          </button>
+        )}
       </div>
 
-      {sponsors.length === 0 ? (
-        <p className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.3)" }}>
-          Sin sponsors. Agregar desde Supabase.
-        </p>
-      ) : (
-        sponsors.map((s) => {
-          const logoUrl = logoUrls[s.id];
-          const isUploading = uploadingId === s.id;
-
-          return (
-            <div
-              key={s.id}
-              className="rounded-2xl p-4 space-y-3"
-              style={{
-                background: s.activo
-                  ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
-                  : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
-                border: s.activo
-                  ? "1px solid rgba(74,172,223,0.12)"
-                  : "1px solid rgba(255,255,255,0.06)",
-                opacity: isPending ? 0.6 : 1,
-              }}
-            >
-              {/* Top row: logo + info + toggle */}
-              <div className="flex items-start gap-3">
-                {/* Logo preview + upload */}
-                <button
-                  onClick={() => handleLogoClick(s.id)}
-                  disabled={isUploading}
-                  className="shrink-0 relative group"
-                  title="Subir logo"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center"
-                    style={{
-                      background: "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                    }}
-                  >
-                    {isUploading ? (
-                      <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.4)" }}>...</span>
-                    ) : logoUrl ? (
-                      <img src={logoUrl} alt={s.nombre} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        {s.nombre.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: "rgba(0,0,0,0.55)" }}
-                  >
-                    <span className="text-[9px] text-white font-bold">SUBIR</span>
-                  </div>
-                </button>
-
-                {/* Info */}
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm text-white">{s.nombre}</p>
-                  {s.descripcion && (
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                      {s.descripcion}
-                    </p>
-                  )}
-                  {s.link_url && (
-                    <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(116,172,223,0.6)" }}>
-                      {s.link_url}
-                    </p>
-                  )}
-                </div>
-
-                {/* Toggle */}
-                <button
-                  onClick={() => handleToggle(s)}
-                  disabled={isPending}
-                  className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                  style={
-                    s.activo
-                      ? {
-                          background: "rgba(255,255,255,0.07)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          color: "rgba(255,255,255,0.6)",
-                        }
-                      : {
-                          background: "rgba(74,172,223,0.12)",
-                          border: "1px solid rgba(74,172,223,0.25)",
-                          color: "rgba(116,172,223,0.9)",
-                        }
-                  }
-                >
-                  {s.activo ? "Desactivar" : "Activar"}
-                </button>
-              </div>
-
-              {/* Status row */}
-              <div className="flex items-center gap-3">
-                <span
-                  className="text-[10px] font-bold"
-                  style={{ color: s.activo ? "#4ade80" : "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}
-                >
-                  {s.activo ? "● Activo" : "○ Inactivo"}
-                </span>
-                <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>
-                  · orden {s.orden}
-                </span>
-                <button
-                  onClick={() => handleLogoClick(s.id)}
-                  disabled={isUploading}
-                  className="text-[10px] ml-auto disabled:opacity-40"
-                  style={{ color: "rgba(116,172,223,0.6)" }}
-                >
-                  {isUploading ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
-                </button>
-              </div>
-            </div>
-          );
-        })
+      {/* Create/Edit form */}
+      {formMode.type === "create" && (
+        <SponsorForm
+          mode="create"
+          onSuccess={() => { setFormMode({ type: "none" }); onRefresh(); }}
+          onCancel={() => setFormMode({ type: "none" })}
+        />
       )}
+      {formMode.type === "edit" && (
+        <SponsorForm
+          mode="edit"
+          sponsor={formMode.sponsor}
+          onSuccess={() => { setFormMode({ type: "none" }); onRefresh(); }}
+          onCancel={() => setFormMode({ type: "none" })}
+        />
+      )}
+
+      {/* List */}
+      {sponsors.length === 0 && formMode.type === "none" && (
+        <p className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.3)" }}>
+          Sin sponsors. Usá "+ Agregar" para crear uno.
+        </p>
+      )}
+
+      {sponsors.map((s) => (
+        <div
+          key={s.id}
+          className="rounded-2xl p-4 space-y-3"
+          style={{
+            background: s.activo
+              ? "linear-gradient(160deg, #0f1322 0%, #07090f 100%)"
+              : "linear-gradient(160deg, #0a0e18 0%, #07090f 100%)",
+            border: s.activo
+              ? "1px solid rgba(74,172,223,0.12)"
+              : "1px solid rgba(255,255,255,0.06)",
+            opacity: isPending || deletingId === s.id ? 0.6 : 1,
+          }}
+        >
+          {/* Top row */}
+          <div className="flex items-start gap-3">
+            {/* Logo */}
+            <div
+              className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              {s.logo_url ? (
+                <img src={s.logo_url} alt={s.nombre} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  {s.nombre.slice(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-sm text-white">{s.nombre}</p>
+              {s.descripcion && (
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{s.descripcion}</p>
+              )}
+              {s.link_url && (
+                <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(116,172,223,0.6)" }}>{s.link_url}</p>
+              )}
+            </div>
+
+            {/* Toggle */}
+            <button
+              onClick={() => handleToggle(s)}
+              disabled={isPending}
+              className="shrink-0 h-7 px-3 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+              style={
+                s.activo
+                  ? { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }
+                  : { background: "rgba(74,172,223,0.12)", border: "1px solid rgba(74,172,223,0.25)", color: "rgba(116,172,223,0.9)" }
+              }
+            >
+              {s.activo ? "Desactivar" : "Activar"}
+            </button>
+          </div>
+
+          {/* Bottom row: status + actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="text-[10px] font-bold"
+              style={{ color: s.activo ? "#4ade80" : "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}
+            >
+              {s.activo ? "● Activo" : "○ Inactivo"}
+            </span>
+            <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.2)" }}>· orden {s.orden}</span>
+
+            <div className="ml-auto flex items-center gap-2">
+              {confirmDeleteId === s.id ? (
+                <>
+                  <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>¿Eliminar?</span>
+                  <button
+                    onClick={() => handleDelete(s.id)}
+                    disabled={deletingId === s.id}
+                    className="text-[10px] font-bold disabled:opacity-50"
+                    style={{ color: "#f87171" }}
+                  >
+                    {deletingId === s.id ? "..." : "Sí"}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="text-[10px]"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                  >
+                    No
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => { setFormMode({ type: "edit", sponsor: s }); setConfirmDeleteId(null); }}
+                    className="text-[10px] font-semibold"
+                    style={{ color: "rgba(116,172,223,0.7)" }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(s.id)}
+                    className="text-[10px]"
+                    style={{ color: "rgba(248,113,113,0.6)" }}
+                  >
+                    Eliminar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -65,44 +65,61 @@ export function SponsorsCarousel() {
         onClick={(e) => { if (!sponsor.link_url) e.preventDefault(); }}
       >
         <div
-          className="flex items-center gap-3 rounded-2xl px-4"
+          className="flex items-center gap-4 rounded-2xl overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "linear-gradient(135deg, #0d1120 0%, #0a0d18 100%)",
+            border: "1px solid rgba(212,175,55,0.3)",
             height: "90px",
+            padding: "0 16px",
           }}
         >
+          {/* Logo */}
           <div
-            className="w-[50px] h-[50px] rounded-full shrink-0 flex items-center justify-center overflow-hidden"
+            className="w-[70px] h-[70px] rounded-xl shrink-0 flex items-center justify-center overflow-hidden"
             style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
             {sponsor.logo_url ? (
               <img src={sponsor.logo_url} alt={sponsor.nombre} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.35)" }}>
                 {sponsor.nombre.slice(0, 2).toUpperCase()}
               </span>
             )}
           </div>
 
+          {/* Text */}
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-white truncate">{sponsor.nombre}</p>
+            <span
+              className="inline-block text-[8px] font-bold px-1.5 py-0.5 rounded mb-1"
+              style={{
+                background: "rgba(212,175,55,0.1)",
+                color: "rgba(212,175,55,0.65)",
+                letterSpacing: "1px",
+                border: "1px solid rgba(212,175,55,0.2)",
+              }}
+            >
+              PATROCINADOR
+            </span>
+            <p className="font-bold text-base text-white truncate leading-tight">{sponsor.nombre}</p>
             {sponsor.descripcion && (
-              <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="text-xs truncate mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {sponsor.descripcion}
               </p>
             )}
           </div>
 
-          <span
-            className="text-[9px] font-bold shrink-0"
-            style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "1px" }}
-          >
-            SPONSOR
-          </span>
+          {/* CTA */}
+          {sponsor.link_url && (
+            <span
+              className="text-xs font-semibold shrink-0"
+              style={{ color: "rgba(212,175,55,0.7)", whiteSpace: "nowrap" }}
+            >
+              Ver más →
+            </span>
+          )}
         </div>
       </a>
 
@@ -116,7 +133,7 @@ export function SponsorsCarousel() {
               style={{
                 width: i === current ? "16px" : "6px",
                 height: "6px",
-                background: i === current ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)",
+                background: i === current ? "rgba(212,175,55,0.6)" : "rgba(255,255,255,0.2)",
                 transition: "width 0.2s ease, background 0.2s ease",
               }}
             />
