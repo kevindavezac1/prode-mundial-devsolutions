@@ -270,20 +270,28 @@ function CardFooter({
 
   if (state === "upcoming-unpredicted") {
     return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onPredictClick?.(matchId);
-        }}
-        className="mt-4 w-full py-3 rounded-xl font-extrabold text-[11px] text-white transition-all active:scale-[0.97]"
-        style={{
-          background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)",
-          letterSpacing: "3px",
-          boxShadow: "0 4px 20px rgba(228,0,43,0.3)",
-        }}
-      >
-        PREDECIR ⚽
-      </button>
+      <div className="flex justify-center mt-3">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPredictClick?.(matchId);
+          }}
+          className="active:scale-95 transition-transform"
+          style={{
+            background: 'linear-gradient(135deg, #74ACDF, #4a8bc4)',
+            color: 'white',
+            padding: '8px 28px',
+            borderRadius: '999px',
+            fontSize: '11px',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          PREDECIR
+        </button>
+      </div>
     );
   }
 
