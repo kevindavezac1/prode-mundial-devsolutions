@@ -134,6 +134,9 @@ export async function GET(
 
   if (error || !league) return NextResponse.json({ error: "Liga no encontrada." }, { status: 404 });
 
+  const isOwner = league.owner_id === user.id;
+  const canSeeCode = isOwner || league.allow_member_invite;
+
   const { data: members } = await supabase
     .from("league_members")
     .select("user_id, joined_at, profiles(username, display_name, avatar_url, total_points)")
@@ -156,5 +159,11 @@ export async function GET(
     }))
     .sort((a, b) => b.total_points - a.total_points);
 
-  return NextResponse.json({ data: { ...(league as object), members: sorted } });
+  const leagueData = {
+    ...(league as object),
+    invite_code: canSeeCode ? league.invite_code : null,
+    members: sorted,
+  };
+
+  return NextResponse.json({ data: leagueData });
 }

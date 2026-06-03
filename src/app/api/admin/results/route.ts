@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { getAuthUser } from "@/lib/supabase/auth";
+
+function serviceClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+async function assertAdmin(request: Request): Promise<boolean> {
+  const { user } = await getAuthUser(request);
+  if (!user?.email) return false;
+  const allowed = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase());
+  return allowed.includes(user.email.toLowerCase());
+}
 
 export async function POST(request: Request) {
-  const secret = request.headers.get("x-admin-secret");
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!(await assertAdmin(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
@@ -12,17 +28,19 @@ export async function POST(request: Request) {
 
   if (
     typeof match_id !== "number" ||
+    !Number.isInteger(match_id) ||
+    match_id <= 0 ||
     typeof home_score !== "number" ||
+    !Number.isInteger(home_score) ||
     typeof away_score !== "number" ||
-    home_score < 0 || away_score < 0
+    !Number.isInteger(away_score) ||
+    home_score < 0 || away_score < 0 ||
+    home_score > 20 || away_score > 20
   ) {
     return NextResponse.json({ error: "Datos inválidos." }, { status: 400 });
   }
 
-  const supabase = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = serviceClient();
 
   const { data: match } = await supabase
     .from("matches")
@@ -43,7 +61,7 @@ export async function POST(request: Request) {
     })
     .eq("id", match_id);
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) return NextResponse.json({ error: "Error al actualizar el resultado." }, { status: 500 });
 
   await supabase.from("result_audit_log").insert({
     match_id,
