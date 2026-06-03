@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+function adminClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function DELETE(
   request: Request,
@@ -56,11 +64,15 @@ export async function DELETE(
     return NextResponse.json({ error: "Error al expulsar al miembro." }, { status: 500 });
   }
 
-  await supabase.from("league_bans").insert({
+  const { error: banError } = await adminClient().from("league_bans").insert({
     league_id: leagueId,
     user_id: targetUserId,
     banned_by: user.id,
   });
+
+  if (banError) {
+    console.error("[DELETE /api/leagues/:id/members/:userId] ban insert failed:", banError);
+  }
 
   return NextResponse.json({ ok: true });
 }

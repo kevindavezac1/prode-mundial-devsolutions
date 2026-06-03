@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { MatchWithTeams, Prediction } from "@/types/matches";
 
 export type MatchWithPrediction = MatchWithTeams & {
@@ -7,6 +8,11 @@ export type MatchWithPrediction = MatchWithTeams & {
 };
 
 export async function GET(request: Request) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`GET:/api/matches/feed:${ip}`, 60)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
   const { user, supabase } = await getAuthUser(request);
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });

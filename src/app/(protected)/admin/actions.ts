@@ -88,6 +88,14 @@ export async function submitResult(
   homeScore: number,
   awayScore: number
 ): Promise<{ ok: true; predictions_processed: number } | { error: string }> {
+  if (
+    !Number.isInteger(matchId)  || matchId <= 0 ||
+    !Number.isInteger(homeScore) || homeScore < 0 || homeScore > 20 ||
+    !Number.isInteger(awayScore) || awayScore < 0 || awayScore > 20
+  ) {
+    return { error: "Datos inválidos." };
+  }
+
   try {
     const adminId = await assertAdmin();
 

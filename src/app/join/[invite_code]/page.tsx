@@ -107,6 +107,32 @@ export default async function JoinPage({
     if (existing) {
       redirect(`/leagues/${league.id}`);
     }
+
+    // Check ban (admin client — not a member yet, RLS would block)
+    const { data: ban } = await admin
+      .from("league_bans")
+      .select("id")
+      .eq("league_id", league.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (ban) {
+      return (
+        <main
+          className="min-h-screen flex flex-col items-center justify-center p-6 max-w-sm mx-auto text-center gap-4"
+          style={{ background: "#02040a" }}
+        >
+          <p className="text-3xl">🚫</p>
+          <h1 className="text-lg font-bold text-white">No podés unirte a esta liga</h1>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Fuiste expulsado de esta liga por el administrador. No es posible volver a ingresar.
+          </p>
+          <Link href="/dashboard" className="text-sm font-semibold" style={{ color: "#E4002B" }}>
+            Volver al inicio
+          </Link>
+        </main>
+      );
+    }
   }
 
   return (
