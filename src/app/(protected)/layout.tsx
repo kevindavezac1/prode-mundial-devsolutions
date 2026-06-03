@@ -11,5 +11,11 @@ export default async function ProtectedLayout({
 
   if (!user) redirect("/login");
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen" style={{ background: "#07090f" }}>
+      <div className="md:max-w-lg md:mx-auto">
+        {children}
+      </div>
+    </div>
+  );
 }

@@ -26,8 +26,10 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen pb-16" style={{ background: "#07090f" }}>
-      <TopHeader userPoints={userPoints} />
-      <main>{children}</main>
+      <div className="md:max-w-lg md:mx-auto">
+        <TopHeader userPoints={userPoints} />
+        <main>{children}</main>
+      </div>
       <BottomNav />
     </div>
   );

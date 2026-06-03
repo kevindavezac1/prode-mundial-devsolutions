@@ -61,7 +61,7 @@ export function LandingPage() {
         />
 
         {/* Contenido */}
-        <div className="relative flex flex-col min-h-screen" style={{ zIndex: 10 }}>
+        <div className="relative flex flex-col min-h-screen md:max-w-lg md:mx-auto" style={{ zIndex: 10 }}>
 
           {/* Top bar */}
           <div className="px-5 pt-6 flex justify-between items-center">
@@ -189,7 +189,8 @@ export function LandingPage() {
       </div>
 
       {/* ── CÓMO FUNCIONA ───────────────────────────────── */}
-      <div className="px-6 py-10" style={{ background: "#02040a" }}>
+      <div className="py-10" style={{ background: "#02040a" }}>
+      <div className="px-6 md:max-w-lg md:mx-auto">
 
         <div className="mb-8" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
@@ -240,6 +241,7 @@ export function LandingPage() {
           by DevSolutions
         </p>
 
+      </div>
       </div>
     </main>
   );
