@@ -98,6 +98,7 @@ export function LeagueDetailView({ league, userId }: Props) {
 
   const isOwner = league.owner_id === userId;
   const [inviteCode, setInviteCode] = useState(league.invite_code);
+  const [allowMemberInvite, setAllowMemberInvite] = useState(league.allow_member_invite ?? false);
 
   // ── Edit league name ──────────────────────────────────────────────────────
   const [leagueName, setLeagueName] = useState(league.name);
@@ -148,6 +149,22 @@ export function LeagueDetailView({ league, userId }: Props) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("No se pudo copiar");
+    }
+  }
+
+  // ── Toggle member invite ──────────────────────────────────────────────────
+
+  async function toggleMemberInvite() {
+    const next = !allowMemberInvite;
+    setAllowMemberInvite(next);
+    const res = await fetch(`/api/leagues/${league.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ allow_member_invite: next }),
+    });
+    if (!res.ok) {
+      setAllowMemberInvite(!next);
+      toast.error("Error al actualizar el permiso.");
     }
   }
 
@@ -295,6 +312,7 @@ export function LeagueDetailView({ league, userId }: Props) {
         )}
 
         {/* Invite section */}
+        {(isOwner || allowMemberInvite) && (
         <div
           className="rounded-2xl px-4 py-4 space-y-3"
           style={{
@@ -351,6 +369,42 @@ export function LeagueDetailView({ league, userId }: Props) {
               : `…/join/${inviteCode}`}
           </p>
         </div>
+        )}
+
+        {/* Toggle member invite — owner only */}
+        {isOwner && (
+          <div
+            className="rounded-2xl px-4 py-3"
+            style={{
+              background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <button
+              onClick={toggleMemberInvite}
+              className="w-full flex items-center justify-between gap-3"
+            >
+              <span className="text-sm text-white font-medium text-left">
+                Permitir que los miembros compartan el código
+              </span>
+              <div
+                className="relative shrink-0 w-10 h-6 rounded-full transition-colors"
+                style={{
+                  background: allowMemberInvite ? "rgba(228,0,43,0.7)" : "rgba(255,255,255,0.12)",
+                  border: allowMemberInvite ? "1px solid rgba(228,0,43,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                <div
+                  className="absolute top-0.5 w-5 h-5 rounded-full transition-transform"
+                  style={{
+                    background: "white",
+                    transform: allowMemberInvite ? "translateX(1.25rem)" : "translateX(0.125rem)",
+                  }}
+                />
+              </div>
+            </button>
+          </div>
+        )}
 
         {/* Leaderboard */}
         <div className="space-y-2">

@@ -49,6 +49,7 @@ export type Database = {
       }
       leagues: {
         Row: {
+          allow_member_invite: boolean
           created_at: string
           id: string
           invite_code: string
@@ -58,6 +59,7 @@ export type Database = {
           owner_id: string
         }
         Insert: {
+          allow_member_invite?: boolean
           created_at?: string
           id?: string
           invite_code?: string
@@ -67,6 +69,7 @@ export type Database = {
           owner_id: string
         }
         Update: {
+          allow_member_invite?: boolean
           created_at?: string
           id?: string
           invite_code?: string

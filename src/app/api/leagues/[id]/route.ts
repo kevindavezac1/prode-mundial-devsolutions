@@ -64,15 +64,25 @@ export async function PATCH(
     return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
   }
 
-  const { name } = body as { name?: string };
-  if (typeof name !== "string" || name.trim().length < 3 || name.trim().length > 50) {
+  const { name, allow_member_invite } = body as { name?: string; allow_member_invite?: boolean };
+
+  const isNameUpdate = name !== undefined;
+  const isToggleUpdate = allow_member_invite !== undefined;
+
+  if (!isNameUpdate && !isToggleUpdate) {
+    return NextResponse.json({ error: "Nada que actualizar." }, { status: 400 });
+  }
+
+  if (isNameUpdate && (typeof name !== "string" || name.trim().length < 3 || name.trim().length > 50)) {
     return NextResponse.json(
       { error: "El nombre debe tener entre 3 y 50 caracteres." },
       { status: 400 }
     );
   }
 
-  const trimmed = name.trim();
+  if (isToggleUpdate && typeof allow_member_invite !== "boolean") {
+    return NextResponse.json({ error: "Valor inválido para allow_member_invite." }, { status: 400 });
+  }
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
@@ -88,11 +98,15 @@ export async function PATCH(
     return NextResponse.json({ error: "Solo el creador puede editar la liga." }, { status: 403 });
   }
 
+  const patch: { name?: string; allow_member_invite?: boolean } = {};
+  if (isNameUpdate) patch.name = (name as string).trim();
+  if (isToggleUpdate) patch.allow_member_invite = allow_member_invite as boolean;
+
   const { data: updated, error } = await supabase
     .from("leagues")
-    .update({ name: trimmed })
+    .update(patch)
     .eq("id", params.id)
-    .select("id, name")
+    .select("id, name, allow_member_invite")
     .single();
 
   if (error) {
@@ -114,7 +128,7 @@ export async function GET(
 
   const { data: league, error } = await supabase
     .from("leagues")
-    .select("id, name, invite_code, owner_id, max_members, is_public, created_at")
+    .select("id, name, invite_code, owner_id, max_members, is_public, allow_member_invite, created_at")
     .eq("id", params.id)
     .single();
 
@@ -142,5 +156,5 @@ export async function GET(
     }))
     .sort((a, b) => b.total_points - a.total_points);
 
-  return NextResponse.json({ data: { ...league, members: sorted } });
+  return NextResponse.json({ data: { ...(league as object), members: sorted } });
 }

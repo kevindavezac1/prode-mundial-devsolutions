@@ -5,6 +5,7 @@ export type League = {
   owner_id: string;
   max_members: number;
   is_public: boolean;
+  allow_member_invite: boolean;
   created_at: string;
   member_count?: number;
 };
