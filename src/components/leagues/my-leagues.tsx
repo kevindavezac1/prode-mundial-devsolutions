@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { League } from "@/types/leagues";
+import { LeagueAvatar } from "@/components/leagues/league-avatar";
 
 type Props = { leagues: League[]; userId: string };
 
@@ -195,13 +196,14 @@ export function MyLeagues({ leagues, userId }: Props) {
             <Link
               key={league.id}
               href={`/leagues/${league.id}`}
-              className="flex items-center justify-between rounded-2xl px-4 py-3.5 transition-all active:scale-[0.98]"
+              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 transition-all active:scale-[0.98]"
               style={{
                 background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
                 border: "1px solid rgba(255,255,255,0.07)",
               }}
             >
-              <div className="min-w-0">
+              <LeagueAvatar imageUrl={league.image_url ?? null} name={league.name} size="sm" />
+              <div className="min-w-0 flex-1">
                 <p className="font-bold text-sm text-white truncate">{league.name}</p>
                 <p
                   className="text-xs mt-0.5"

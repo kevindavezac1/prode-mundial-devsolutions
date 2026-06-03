@@ -7,6 +7,7 @@ export type League = {
   is_public: boolean;
   allow_member_invite: boolean;
   created_at: string;
+  image_url: string | null;
   member_count?: number;
 };
 

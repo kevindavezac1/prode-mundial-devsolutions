@@ -13,7 +13,7 @@ export default async function LeaguesPage() {
 
   const { data: memberships } = await supabase
     .from("league_members")
-    .select("league_id, leagues(id, name, invite_code, owner_id, max_members, is_public, created_at)")
+    .select("league_id, leagues(id, name, invite_code, owner_id, max_members, is_public, created_at, image_url)")
     .eq("user_id", user.id);
 
   const leagues = ((memberships ?? []).map((m) => m.leagues).filter(Boolean)) as unknown as League[];

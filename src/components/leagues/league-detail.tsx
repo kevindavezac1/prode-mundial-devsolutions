@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 import type { LeagueDetail, LeagueMember } from "@/types/leagues";
+import { LeagueAvatar } from "@/components/leagues/league-avatar";
+import { updateLeagueImageUrl } from "@/app/(app)/leagues/[id]/actions";
 
 type Props = { league: LeagueDetail; userId: string };
 
@@ -98,6 +101,76 @@ export function LeagueDetailView({ league, userId }: Props) {
 
   const isOwner = league.owner_id === userId;
   const [allowMemberInvite, setAllowMemberInvite] = useState(league.allow_member_invite ?? false);
+
+  // ── League avatar upload ──────────────────────────────────────────────────
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(league.image_url ?? null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageSaving, setImageSaving] = useState(false);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setImageError(null);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type)) {
+      setImageError("Formato no válido. Usá JPG, PNG o WebP.");
+      return;
+    }
+    if (selected.size > 5 * 1024 * 1024) {
+      setImageError("Máximo 5MB.");
+      return;
+    }
+    setImageFile(selected);
+    setImagePreview(URL.createObjectURL(selected));
+  }
+
+  async function handleImageSave() {
+    if (!imageFile) return;
+    setImageSaving(true);
+    setImageError(null);
+    const supabase = createClient();
+    const ext = imageFile.type.split("/")[1];
+    const path = `${league.id}/logo.${ext}`;
+
+    const { error: storageError } = await supabase.storage
+      .from("league-images")
+      .upload(path, imageFile, { upsert: true, contentType: imageFile.type });
+
+    if (storageError) {
+      setImageError("Error al subir. Intentá de nuevo.");
+      setImageSaving(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("league-images")
+      .getPublicUrl(path);
+
+    const urlWithBust = `${publicUrl}?t=${Date.now()}`;
+    const result = await updateLeagueImageUrl(league.id, urlWithBust);
+
+    if (result.error) {
+      setImageError(result.error);
+      setImageSaving(false);
+      return;
+    }
+
+    setImageUrl(urlWithBust);
+    setImagePreview(null);
+    setImageFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+    setImageSaving(false);
+    toast.success("Foto de liga actualizada.");
+  }
+
+  function handleImageCancel() {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   // ── Edit league name ──────────────────────────────────────────────────────
   const [leagueName, setLeagueName] = useState(league.name);
@@ -237,6 +310,72 @@ export function LeagueDetailView({ league, userId }: Props) {
       {modal && <ConfirmModal modal={modal} onClose={() => setModal(null)} />}
 
       <div className="space-y-5">
+
+        {/* League avatar */}
+        <div className="flex flex-col items-center gap-2">
+          {isOwner ? (
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => !imageSaving && fileRef.current?.click()}
+            >
+              <LeagueAvatar imageUrl={imagePreview ?? imageUrl} name={leagueName} size="lg" />
+              <div
+                className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ background: "rgba(0,0,0,0.55)" }}
+              >
+                <span className="text-base">📷</span>
+              </div>
+            </div>
+          ) : (
+            <LeagueAvatar imageUrl={imageUrl} name={leagueName} size="lg" />
+          )}
+
+          {isOwner && (
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          )}
+
+          {imageFile ? (
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={handleImageSave}
+                disabled={imageSaving}
+                className="h-6 px-2.5 text-[10px] font-bold rounded-lg transition-all active:scale-95 disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)", color: "white" }}
+              >
+                {imageSaving ? "Subiendo…" : "Guardar"}
+              </button>
+              <button
+                type="button"
+                onClick={handleImageCancel}
+                disabled={imageSaving}
+                className="h-6 px-2.5 text-[10px] font-semibold rounded-lg disabled:opacity-60"
+                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.55)" }}
+              >
+                ✕
+              </button>
+            </div>
+          ) : isOwner ? (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="text-[10px] font-semibold"
+              style={{ color: "rgba(255,255,255,0.25)" }}
+            >
+              Cambiar foto
+            </button>
+          ) : null}
+
+          {imageError && (
+            <p className="text-[10px] text-center" style={{ color: "#f87171" }}>{imageError}</p>
+          )}
+        </div>
 
         {/* League name — editable for owner */}
         {isOwner && (

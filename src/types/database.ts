@@ -91,6 +91,7 @@ export type Database = {
           allow_member_invite: boolean
           created_at: string
           id: string
+          image_url: string | null
           invite_code: string
           is_public: boolean
           max_members: number
@@ -101,6 +102,7 @@ export type Database = {
           allow_member_invite?: boolean
           created_at?: string
           id?: string
+          image_url?: string | null
           invite_code?: string
           is_public?: boolean
           max_members?: number
@@ -111,6 +113,7 @@ export type Database = {
           allow_member_invite?: boolean
           created_at?: string
           id?: string
+          image_url?: string | null
           invite_code?: string
           is_public?: boolean
           max_members?: number
