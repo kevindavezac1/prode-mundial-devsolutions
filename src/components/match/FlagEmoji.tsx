@@ -17,7 +17,7 @@ const FIFA_TO_FLAGCDN: Record<string, string> = {
   CHI: "cl", PER: "pe", PAR: "py", BOL: "bo", VEN: "ve",
   USA: "us", CAN: "ca", MEX: "mx", CRC: "cr", PAN: "pa",
   HON: "hn", NCA: "ni", SLV: "sv", GTM: "gt", BLZ: "bz",
-  JAM: "jm", TRI: "tt", HAI: "ht", DOM: "do", CUB: "cu",
+  JAM: "jm", TRI: "tt", HAI: "ht", DOM: "do", CUB: "cu", CUW: "cw",
   // Europe
   FRA: "fr", GER: "de", ESP: "es", POR: "pt", NED: "nl",
   BEL: "be", ITA: "it",
@@ -31,7 +31,7 @@ const FIFA_TO_FLAGCDN: Record<string, string> = {
   AZE: "az", LVA: "lv", LTU: "lt", EST: "ee", MON: "mc",
   LIE: "li", AND: "ad", SMR: "sm", CYP: "cy",
   // Africa
-  MAR: "ma", EGY: "eg", ALG: "dz", TUN: "tn", SEN: "sn",
+  MAR: "ma", EGY: "eg", ALG: "dz", TUN: "tn", SEN: "sn", CPV: "cv",
   GHA: "gh", NGR: "ng", CMR: "cm", CIV: "ci", RSA: "za",
   ETH: "et", KEN: "ke", UGA: "ug", TAN: "tz", ZAM: "zm",
   ZIM: "zw", ANG: "ao", MOZ: "mz", NAM: "na", BOT: "bw",
