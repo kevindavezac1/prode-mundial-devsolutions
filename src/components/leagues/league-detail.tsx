@@ -92,13 +92,11 @@ function ConfirmModal({
 // ─── Main view ─────────────────────────────────────────────────────────────────
 
 export function LeagueDetailView({ league, userId }: Props) {
-  const [copied, setCopied] = useState(false);
   const [copiedPermanent, setCopiedPermanent] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [members, setMembers] = useState<LeagueMember[]>(league.members);
 
   const isOwner = league.owner_id === userId;
-  const [inviteCode, setInviteCode] = useState(league.invite_code);
   const [allowMemberInvite, setAllowMemberInvite] = useState(league.allow_member_invite ?? false);
 
   // ── Edit league name ──────────────────────────────────────────────────────
@@ -136,21 +134,6 @@ export function LeagueDetailView({ league, userId }: Props) {
     setEditingName(false);
     setNameInput(leagueName);
     setNameError(null);
-  }
-
-  function getInviteLink() {
-    return `${window.location.origin}/join/${inviteCode}`;
-  }
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(getInviteLink());
-      setCopied(true);
-      toast.success("Link copiado");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("No se pudo copiar");
-    }
   }
 
   function getPermanentLink() {
@@ -245,7 +228,6 @@ export function LeagueDetailView({ league, userId }: Props) {
         }
         toast.success(`${member.display_name} fue expulsado.`);
         setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id));
-        if (body.invite_code) setInviteCode(body.invite_code);
       },
     });
   }
@@ -327,8 +309,8 @@ export function LeagueDetailView({ league, userId }: Props) {
           </div>
         )}
 
-        {/* Permanent link — owner only */}
-        {isOwner && (
+        {/* Permanent link — owner always, members if allowed */}
+        {(isOwner || allowMemberInvite) && (
           <div
             className="rounded-2xl px-4 py-4 space-y-3"
             style={{
@@ -386,76 +368,6 @@ export function LeagueDetailView({ league, userId }: Props) {
           </div>
         )}
 
-        {/* Invite section */}
-        {(isOwner || allowMemberInvite) && (
-        <div
-          className="rounded-2xl px-4 py-4 space-y-3"
-          style={{
-            background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
-            border: "1px solid rgba(255,255,255,0.07)",
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <p
-              className="text-[10px] font-bold"
-              style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
-            >
-              INVITAR AMIGOS
-            </p>
-            {isOwner && (
-              <span
-                className="text-[9px]"
-                style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "0.5px" }}
-              >
-                cambia al expulsar
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div
-              className="flex-1 px-3 py-2 rounded-xl font-display text-lg text-white tracking-widest truncate"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              {inviteCode}
-            </div>
-            <button
-              onClick={copyLink}
-              className="px-4 py-2 rounded-xl text-[11px] font-bold transition-all active:scale-95"
-              style={
-                copied
-                  ? {
-                      background: "rgba(10,110,62,0.2)",
-                      border: "1px solid rgba(10,110,62,0.4)",
-                      color: "#4ade80",
-                      letterSpacing: "1px",
-                    }
-                  : {
-                      background: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      color: "rgba(255,255,255,0.7)",
-                      letterSpacing: "1px",
-                    }
-              }
-            >
-              {copied ? "✓ COPIADO" : "COPIAR"}
-            </button>
-          </div>
-
-          <p
-            className="text-[10px] break-all"
-            style={{ color: "rgba(255,255,255,0.2)" }}
-          >
-            {typeof window !== "undefined"
-              ? `${window.location.origin}/join/${league.invite_code}`
-              : `…/join/${inviteCode}`}
-          </p>
-        </div>
-        )}
-
         {/* Toggle member invite — owner only */}
         {isOwner && (
           <div
@@ -470,7 +382,7 @@ export function LeagueDetailView({ league, userId }: Props) {
               className="w-full flex items-center justify-between gap-3"
             >
               <span className="text-sm text-white font-medium text-left">
-                Permitir que los miembros compartan el código
+                Permitir que los miembros compartan el link
               </span>
               <div
                 className="relative shrink-0 w-10 h-6 rounded-full transition-colors"
