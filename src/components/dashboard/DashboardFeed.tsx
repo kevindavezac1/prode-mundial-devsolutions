@@ -312,15 +312,15 @@ export function DashboardFeed({ displayName }: Props) {
 
       {hasSponsors && (
         <p className="text-center text-xs pb-1" style={{ color: "rgba(255,255,255,0.2)" }}>
-          ¿Querés ser patrocinador?{" "}
+          ¿Querés ser patrocinador? →{" "}
           <a
-            href="https://instagram.com/devsolutionsar"
+            href="https://www.instagram.com/devsolutions.it?igsh=dmhlcjZscDVwZG8x&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium"
             style={{ color: "rgba(212,175,55,0.6)" }}
           >
-            @devsolutionsar
+            DevSolutions
           </a>
         </p>
       )}
