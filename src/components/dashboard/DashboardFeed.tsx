@@ -107,6 +107,7 @@ export function DashboardFeed({ displayName }: Props) {
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [teamSearch, setTeamSearch] = useState("");
   const [localTZ, setLocalTZ] = useState<string>("UTC");
+  const [hasSponsors, setHasSponsors] = useState(false);
 
   useEffect(() => {
     setLocalTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -307,7 +308,22 @@ export function DashboardFeed({ displayName }: Props) {
         </p>
       </div>
 
-      <SponsorsCarousel />
+      <SponsorsCarousel onHasSponsors={setHasSponsors} />
+
+      {hasSponsors && (
+        <p className="text-center text-xs pb-1" style={{ color: "rgba(255,255,255,0.2)" }}>
+          ¿Querés ser patrocinador?{" "}
+          <a
+            href="https://instagram.com/devsolutionsar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium"
+            style={{ color: "rgba(212,175,55,0.6)" }}
+          >
+            @devsolutionsar
+          </a>
+        </p>
+      )}
 
       {/* Team filter bar */}
       <div

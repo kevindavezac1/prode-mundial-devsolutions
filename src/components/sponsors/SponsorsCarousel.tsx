@@ -12,7 +12,7 @@ type Sponsor = {
   orden: number;
 };
 
-export function SponsorsCarousel() {
+export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: boolean) => void } = {}) {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [current, setCurrent] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -26,8 +26,10 @@ export function SponsorsCarousel() {
       .eq("activo", true)
       .order("orden")
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          setSponsors(data);
+        const hasSponsors = !!(data && data.length > 0);
+        onHasSponsors?.(hasSponsors);
+        if (hasSponsors) {
+          setSponsors(data!);
           data.forEach((s) => {
             if (s.logo_url) {
               const img = new Image();

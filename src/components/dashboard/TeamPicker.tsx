@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import type { Team } from "@/types/matches";
 
@@ -23,6 +24,33 @@ export function TeamPicker({ teams, search, onSearchChange, onSelect, onClose }:
     ? teams.filter((t) => normalizeText(t.name).includes(normalizeText(search)))
     : teams;
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    function update() {
+      const keyboardHeight = Math.max(0, window.innerHeight - (vv!.offsetTop + vv!.height));
+      if (sheetRef.current) {
+        sheetRef.current.style.bottom = `${keyboardHeight}px`;
+      }
+    }
+
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  function handleInputFocus(e: React.FocusEvent<HTMLInputElement>) {
+    setTimeout(() => {
+      e.target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 350);
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -34,11 +62,14 @@ export function TeamPicker({ teams, search, onSearchChange, onSelect, onClose }:
 
       {/* Bottom sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl flex flex-col"
+        ref={sheetRef}
+        className="fixed left-0 right-0 z-50 rounded-t-2xl flex flex-col md:max-w-lg md:left-1/2 md:-translate-x-1/2 md:right-auto"
         style={{
           background: "#0d1120",
-          maxHeight: "82vh",
+          maxHeight: "72vh",
           borderTop: "1px solid rgba(255,255,255,0.1)",
+          bottom: 0,
+          transition: "bottom 0.15s ease-out",
         }}
       >
         {/* Header */}
@@ -60,6 +91,7 @@ export function TeamPicker({ teams, search, onSearchChange, onSelect, onClose }:
             placeholder="Buscar equipo..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
+            onFocus={handleInputFocus}
             autoFocus
             className="w-full px-3 py-2.5 rounded-xl text-sm text-white focus:outline-none"
             style={{
