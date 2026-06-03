@@ -189,8 +189,8 @@ export function LeagueDetailView({ league, userId }: Props) {
   function confirmLeave() {
     setModal({
       title: "¿Salir de la liga?",
-      description: `Saldrás de "${league.name}". Esta acción no se puede deshacer.`,
-      confirmLabel: "Salir",
+      description: `Saldrás de "${league.name}". Podrás volver a unirte en el futuro si tenés el link de invitación.`,
+      confirmLabel: "Salir de la liga",
       danger: true,
       onConfirm: async () => {
         const res = await fetch(`/api/leagues/${league.id}/leave`, { method: "DELETE" });
@@ -231,8 +231,8 @@ export function LeagueDetailView({ league, userId }: Props) {
   function confirmKick(member: LeagueMember) {
     setModal({
       title: `¿Expulsar a ${member.display_name}?`,
-      description: "No podrá volver a unirse a esta liga. El código de invitación se regenerará.",
-      confirmLabel: "Expulsar",
+      description: "Esta acción es permanente — el usuario quedará bloqueado y no podrá volver a unirse a esta liga bajo ningún concepto.",
+      confirmLabel: "Expulsar permanentemente",
       danger: true,
       onConfirm: async () => {
         const res = await fetch(`/api/leagues/${league.id}/members/${member.user_id}`, {

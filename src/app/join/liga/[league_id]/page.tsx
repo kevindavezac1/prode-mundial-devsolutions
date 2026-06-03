@@ -116,12 +116,12 @@ export default async function JoinByIdPage({
           style={{ background: "#02040a" }}
         >
           <p className="text-3xl">🚫</p>
-          <h1 className="text-lg font-bold text-white">Acceso restringido</h1>
+          <h1 className="text-lg font-bold text-white">No podés unirte a esta liga</h1>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-            No podés unirte a esta liga.
+            Fuiste expulsado de esta liga por el administrador. No es posible volver a ingresar.
           </p>
-          <Link href="/leagues" className="text-sm font-semibold" style={{ color: "#E4002B" }}>
-            Ver mis ligas
+          <Link href="/dashboard" className="text-sm font-semibold" style={{ color: "#E4002B" }}>
+            Volver al inicio
           </Link>
         </main>
       );
