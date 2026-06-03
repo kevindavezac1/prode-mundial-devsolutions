@@ -56,8 +56,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Error al expulsar al miembro." }, { status: 500 });
   }
 
-  const newCode = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
-  await supabase.from("leagues").update({ invite_code: newCode }).eq("id", leagueId);
+  await supabase.from("league_bans").insert({
+    league_id: leagueId,
+    user_id: targetUserId,
+    banned_by: user.id,
+  });
 
-  return NextResponse.json({ ok: true, invite_code: newCode });
+  return NextResponse.json({ ok: true });
 }

@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      league_bans: {
+        Row: {
+          id: string
+          league_id: string
+          user_id: string
+          banned_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          league_id: string
+          user_id: string
+          banned_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          league_id?: string
+          user_id?: string
+          banned_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_bans_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       league_members: {
         Row: {
           joined_at: string

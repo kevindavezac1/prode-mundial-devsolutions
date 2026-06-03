@@ -56,9 +56,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Error al salir de la liga." }, { status: 500 });
   }
 
-  const newCode = crypto.randomUUID().replace(/-/g, "").substring(0, 8).toUpperCase();
-  await supabase.from("leagues").update({ invite_code: newCode }).eq("id", leagueId);
-
   revalidatePath("/leagues");
   return NextResponse.json({ ok: true });
 }

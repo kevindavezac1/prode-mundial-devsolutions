@@ -3,7 +3,6 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getAuthUser } from "@/lib/supabase/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
-// Service role bypasses RLS — used only for invite_code lookup on private leagues
 function adminClient() {
   return createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,40 +10,36 @@ function adminClient() {
   );
 }
 
-export async function POST(request: Request) {
-  // Rate limit: 10 intentos por minuto por IP
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/leagues/join:${ip}`, 10)) {
+  if (!checkRateLimit(`POST:/api/leagues/join-by-id:${ip}`, 10)) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 
   const { user, supabase } = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
-  const body = await request.json().catch(() => ({}));
-  const raw = typeof body.invite_code === "string" ? body.invite_code.trim().toUpperCase() : "";
+  const leagueId = params.id;
 
-  // Validar: requerido, máximo 8 caracteres (códigos son siempre 8)
-  if (!raw || raw.length > 8) {
-    return NextResponse.json({ error: "Código de invitación inválido." }, { status: 400 });
-  }
+  const admin = adminClient();
 
-  const invite_code = raw;
-
-  // Must use admin client: user is not yet a member, so RLS blocks the lookup
-  const { data: league } = await adminClient()
+  // Verify league exists
+  const { data: league } = await admin
     .from("leagues")
-    .select("id, invite_code, max_members")
-    .eq("invite_code", invite_code)
+    .select("id, max_members")
+    .eq("id", leagueId)
     .single();
 
-  if (!league) return NextResponse.json({ error: "Código incorrecto o liga inexistente." }, { status: 404 });
+  if (!league) return NextResponse.json({ error: "Liga no encontrada." }, { status: 404 });
 
-  // Check ban — admin client needed (user not a member yet)
-  const { data: ban } = await adminClient()
+  // Check ban — must use admin client (user is not a member yet, RLS blocks)
+  const { data: ban } = await admin
     .from("league_bans")
     .select("id")
-    .eq("league_id", league.id)
+    .eq("league_id", leagueId)
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -55,19 +50,21 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check already a member
   const { data: existing } = await supabase
     .from("league_members")
     .select("user_id")
-    .eq("league_id", league.id)
+    .eq("league_id", leagueId)
     .eq("user_id", user.id)
     .maybeSingle();
 
   if (existing) return NextResponse.json({ error: "Ya sos miembro de esta liga." }, { status: 409 });
 
+  // Check capacity
   const { count } = await supabase
     .from("league_members")
     .select("*", { count: "exact", head: true })
-    .eq("league_id", league.id);
+    .eq("league_id", leagueId);
 
   if ((count ?? 0) >= league.max_members) {
     return NextResponse.json({ error: "La liga está llena." }, { status: 409 });
@@ -75,12 +72,12 @@ export async function POST(request: Request) {
 
   const { error } = await supabase
     .from("league_members")
-    .insert({ league_id: league.id, user_id: user.id });
+    .insert({ league_id: leagueId, user_id: user.id });
 
   if (error) {
-    console.error("[POST /api/leagues/join]", error);
+    console.error("[POST /api/leagues/:id/join]", error);
     return NextResponse.json({ error: "Error al unirse a la liga." }, { status: 500 });
   }
 
-  return NextResponse.json({ data: { league_id: league.id } }, { status: 201 });
+  return NextResponse.json({ data: { league_id: leagueId } }, { status: 201 });
 }

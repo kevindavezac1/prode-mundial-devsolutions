@@ -93,6 +93,7 @@ function ConfirmModal({
 
 export function LeagueDetailView({ league, userId }: Props) {
   const [copied, setCopied] = useState(false);
+  const [copiedPermanent, setCopiedPermanent] = useState(false);
   const [modal, setModal] = useState<ModalState>(null);
   const [members, setMembers] = useState<LeagueMember[]>(league.members);
 
@@ -147,6 +148,21 @@ export function LeagueDetailView({ league, userId }: Props) {
       setCopied(true);
       toast.success("Link copiado");
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("No se pudo copiar");
+    }
+  }
+
+  function getPermanentLink() {
+    return `${window.location.origin}/join/liga/${league.id}`;
+  }
+
+  async function copyPermanentLink() {
+    try {
+      await navigator.clipboard.writeText(getPermanentLink());
+      setCopiedPermanent(true);
+      toast.success("Link permanente copiado");
+      setTimeout(() => setCopiedPermanent(false), 2000);
     } catch {
       toast.error("No se pudo copiar");
     }
@@ -215,7 +231,7 @@ export function LeagueDetailView({ league, userId }: Props) {
   function confirmKick(member: LeagueMember) {
     setModal({
       title: `¿Expulsar a ${member.display_name}?`,
-      description: "El código de invitación se regenerará automáticamente.",
+      description: "No podrá volver a unirse a esta liga. El código de invitación se regenerará.",
       confirmLabel: "Expulsar",
       danger: true,
       onConfirm: async () => {
@@ -311,6 +327,65 @@ export function LeagueDetailView({ league, userId }: Props) {
           </div>
         )}
 
+        {/* Permanent link — owner only */}
+        {isOwner && (
+          <div
+            className="rounded-2xl px-4 py-4 space-y-3"
+            style={{
+              background: "linear-gradient(160deg, #0d1120 0%, #07090f 100%)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <p
+                className="text-[10px] font-bold"
+                style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+              >
+                LINK PERMANENTE
+              </p>
+              <span
+                className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(212,175,55,0.12)",
+                  border: "1px solid rgba(212,175,55,0.25)",
+                  color: "rgba(212,175,55,0.7)",
+                  letterSpacing: "1px",
+                }}
+              >
+                QR · AFICHES
+              </span>
+            </div>
+            <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+              Esta URL nunca cambia. Expulsados no pueden entrar.
+            </p>
+            <button
+              onClick={copyPermanentLink}
+              className="w-full py-2.5 rounded-xl text-[11px] font-bold transition-all active:scale-95"
+              style={
+                copiedPermanent
+                  ? {
+                      background: "rgba(10,110,62,0.2)",
+                      border: "1px solid rgba(10,110,62,0.4)",
+                      color: "#4ade80",
+                      letterSpacing: "1px",
+                    }
+                  : {
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.6)",
+                      letterSpacing: "1px",
+                    }
+              }
+            >
+              {copiedPermanent
+                ? "✓ COPIADO"
+                : typeof window !== "undefined"
+                ? `COPIAR — ${window.location.origin}/join/liga/${league.id}`
+                : "COPIAR LINK PERMANENTE"}
+            </button>
+          </div>
+        )}
+
         {/* Invite section */}
         {(isOwner || allowMemberInvite) && (
         <div
@@ -320,12 +395,22 @@ export function LeagueDetailView({ league, userId }: Props) {
             border: "1px solid rgba(255,255,255,0.07)",
           }}
         >
-          <p
-            className="text-[10px] font-bold"
-            style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
-          >
-            INVITAR AMIGOS
-          </p>
+          <div className="flex items-center justify-between">
+            <p
+              className="text-[10px] font-bold"
+              style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+            >
+              INVITAR AMIGOS
+            </p>
+            {isOwner && (
+              <span
+                className="text-[9px]"
+                style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "0.5px" }}
+              >
+                cambia al expulsar
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div
