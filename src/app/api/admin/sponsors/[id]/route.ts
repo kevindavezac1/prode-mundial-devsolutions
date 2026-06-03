@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getAuthUser } from "@/lib/supabase/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 function serviceClient() {
   return createServiceClient(
@@ -22,6 +23,11 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`PATCH:/api/admin/sponsors:${ip}`, 20)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
   if (!(await assertAdmin(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
@@ -58,6 +64,11 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`DELETE:/api/admin/sponsors:${ip}`, 20)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
   if (!(await assertAdmin(request))) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }

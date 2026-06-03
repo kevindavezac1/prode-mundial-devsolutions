@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
   const { data: memberships, error } = await supabase
     .from("league_members")
-    .select("league_id, leagues(id, name, invite_code, owner_id, max_members, is_public, created_at)")
+    .select("league_id, leagues(id, name, invite_code, owner_id, max_members, is_public, allow_member_invite, created_at)")
     .eq("user_id", user.id);
 
   if (error) {
@@ -31,7 +31,15 @@ export async function GET(request: Request) {
     countMap[c.league_id] = (countMap[c.league_id] ?? 0) + 1;
   }
 
-  const result = leagues.map((l) => ({ ...(l as object), member_count: countMap[(l as { id: string }).id] ?? 0 }));
+  const result = leagues.map((l) => {
+    const league = l as { id: string; owner_id: string; invite_code: string; allow_member_invite: boolean };
+    const canSeeCode = league.owner_id === user.id || league.allow_member_invite;
+    return {
+      ...(l as object),
+      invite_code: canSeeCode ? league.invite_code : null,
+      member_count: countMap[league.id] ?? 0,
+    };
+  });
   return NextResponse.json({ data: result });
 }
 
