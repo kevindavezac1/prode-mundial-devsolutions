@@ -39,9 +39,13 @@ type Props = {
 
 // ─── Time helper (sin cambios) ────────────────────────────────────────────────
 
+function toUTCDate(s: string): Date {
+  const normalized = s.replace(" ", "T").replace("+00:00", "Z");
+  return new Date(normalized.endsWith("Z") ? normalized : normalized + "Z");
+}
+
 function formatMatchTime(scheduled_at: string): string {
-  const date = new Date(scheduled_at.endsWith("Z") ? scheduled_at : scheduled_at + "Z");
-  return date.toLocaleTimeString("es-AR", {
+  return toUTCDate(scheduled_at).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -53,7 +57,7 @@ function formatMatchTime(scheduled_at: string): string {
 
 function formatDateLabel(scheduledAt: string): string {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const scheduled = new Date(scheduledAt.endsWith("Z") ? scheduledAt : scheduledAt + "Z");
+  const scheduled = toUTCDate(scheduledAt);
   const now = new Date();
   const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: tz });
   if (fmt(scheduled) === fmt(now)) return "HOY";
