@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { MatchCard } from "@/components/match/MatchCard";
 import { PredictionSheet } from "@/components/match/PredictionSheet";
