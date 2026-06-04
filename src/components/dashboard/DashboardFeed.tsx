@@ -106,17 +106,8 @@ export function DashboardFeed({ displayName }: Props) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [teamSearch, setTeamSearch] = useState("");
-  const [localTZ, setLocalTZ] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone;
-    }
-    return "UTC";
-  });
+  const localTZ = "America/Argentina/Buenos_Aires";
   const [hasSponsors, setHasSponsors] = useState(false);
-
-  useEffect(() => {
-    setLocalTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  }, []);
 
   const matches = response?.data ?? [];
   const now = useMemo(() => new Date(), []);

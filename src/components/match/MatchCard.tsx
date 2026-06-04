@@ -49,14 +49,14 @@ function formatMatchTime(scheduled_at: string): string {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 }
 
 // ─── State badge ──────────────────────────────────────────────────────────────
 
 function formatDateLabel(scheduledAt: string): string {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const tz = "America/Argentina/Buenos_Aires";
   const scheduled = toUTCDate(scheduledAt);
   const now = new Date();
   const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: tz });

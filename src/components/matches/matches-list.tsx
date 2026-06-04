@@ -42,11 +42,7 @@ function groupByDate(matches: MatchWithTeams[], tz: string): DateGroup[] {
 export function MatchesList({ matches }: Props) {
   const { data, mutate } = useSWR<ApiResponse>("/api/predictions", fetcher);
   const predictions = useMemo<PredictionsMap>(() => data?.data ?? {}, [data]);
-  const [localTZ, setLocalTZ] = useState<string>("UTC");
-
-  useEffect(() => {
-    setLocalTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  }, []);
+  const localTZ = "America/Argentina/Buenos_Aires";
 
   const groups = useMemo(() => groupByDate(matches, localTZ), [matches, localTZ]);
   const [selectedIdx, setSelectedIdx] = useState(0);
