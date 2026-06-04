@@ -83,22 +83,33 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: prediction, error } = await supabase
+  const now = new Date().toISOString();
+
+  // Try INSERT first. On unique conflict (user already predicted this match), fall back to UPDATE.
+  // Cannot use upsert: ON CONFLICT DO UPDATE SET would include user_id/match_id which are not
+  // in the column-level UPDATE grant (only home_score, away_score, updated_at are allowed).
+  const { data: inserted, error: insertError } = await supabase
     .from("predictions")
-    .upsert(
-      { user_id: user.id, match_id, home_score, away_score, updated_at: new Date().toISOString() },
-      { onConflict: "user_id,match_id" }
-    )
+    .insert({ user_id: user.id, match_id, home_score, away_score, updated_at: now })
     .select()
     .single();
 
+  let prediction = inserted;
+  let error = insertError;
+
+  if (insertError?.code === "23505") {
+    const { data: updated, error: updateError } = await supabase
+      .from("predictions")
+      .update({ home_score, away_score, updated_at: now })
+      .eq("user_id", user.id)
+      .eq("match_id", match_id)
+      .select()
+      .single();
+    prediction = updated;
+    error = updateError;
+  }
+
   if (error) {
-    if (error.code === "42501" || error.code === "PGRST301") {
-      return NextResponse.json(
-        { error: "No podés modificar esta predicción." },
-        { status: 422 }
-      );
-    }
     console.error("[POST /api/predictions]", error);
     return NextResponse.json({ error: "Error al guardar la predicción." }, { status: 500 });
   }
