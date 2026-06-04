@@ -36,6 +36,12 @@ export async function updateDisplayName(
 }
 
 export async function updateAvatarUrl(url: string): Promise<{ error?: string }> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const expectedPrefix = `${supabaseUrl}/storage/v1/object/public/avatars/`;
+  if (!supabaseUrl || !url.startsWith(expectedPrefix)) {
+    return { error: "URL de avatar inválida." };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "No autenticado." };

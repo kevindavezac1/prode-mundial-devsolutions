@@ -21,7 +21,7 @@ async function assertAdmin(request: Request): Promise<boolean> {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/admin/sponsors:${ip}`, 20)) {
+  if (!(await checkRateLimit(`POST:/api/admin/sponsors:${ip}`, 20))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 

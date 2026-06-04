@@ -15,7 +15,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/leagues/join-by-id:${ip}`, 10)) {
+  if (!(await checkRateLimit(`POST:/api/leagues/join-by-id:${ip}`, 10))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 

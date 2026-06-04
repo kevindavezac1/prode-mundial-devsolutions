@@ -1,47 +1,30 @@
-/**
- * Rate limiter simple en memoria — sin dependencias externas.
- * En Vercel cada función serverless tiene su propio proceso,
- * por lo que el Map se resetea entre cold starts.
- * Suficiente para ~1000 usuarios: limita abuso dentro de una instancia.
- */
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-type Entry = { count: number; resetAt: number };
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
-const store = new Map<string, Entry>();
-const WINDOW_MS = 60_000; // 1 minuto
+// Cache limiter instances by max-count — one Ratelimit object per distinct limit value
+const cache = new Map<number, Ratelimit>();
 
-function cleanup() {
-  const now = Date.now();
-  store.forEach((entry, key) => {
-    if (now > entry.resetAt) store.delete(key);
-  });
-}
-
-/**
- * @param key    Identificador único (ej: "POST:/api/leagues:1.2.3.4")
- * @param max    Máximo de requests permitidos en la ventana de 1 minuto
- * @returns true si permitido, false si excede el límite
- */
-export function checkRateLimit(key: string, max: number): boolean {
-  // Limpieza probabilística (~1%) para evitar memory leak
-  if (Math.random() < 0.01) cleanup();
-
-  const now = Date.now();
-  const entry = store.get(key);
-
-  if (!entry || now > entry.resetAt) {
-    store.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
+function getLimiter(max: number): Ratelimit {
+  if (!cache.has(max)) {
+    cache.set(max, new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(max, "1 m"),
+      analytics: false,
+    }));
   }
-
-  if (entry.count >= max) return false;
-  entry.count++;
-  return true;
+  return cache.get(max)!;
 }
 
-/**
- * Extrae IP del request — compatible con Vercel y localhost.
- */
+export async function checkRateLimit(key: string, max: number): Promise<boolean> {
+  const { success } = await getLimiter(max).limit(key);
+  return success;
+}
+
 export function getClientIp(request: Request): string {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??

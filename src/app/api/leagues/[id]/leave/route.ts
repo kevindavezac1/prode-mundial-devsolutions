@@ -8,7 +8,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`DELETE:/api/leagues/leave:${ip}`, 10)) {
+  if (!(await checkRateLimit(`DELETE:/api/leagues/leave:${ip}`, 10))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 

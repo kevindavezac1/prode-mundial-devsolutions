@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   // Rate limit: 10 ligas por minuto por IP
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/leagues:${ip}`, 10)) {
+  if (!(await checkRateLimit(`POST:/api/leagues:${ip}`, 10))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 

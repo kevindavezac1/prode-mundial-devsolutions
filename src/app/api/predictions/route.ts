@@ -32,7 +32,7 @@ const schema = z.object({
 export async function POST(request: Request) {
   // Rate limit: 30 predicciones por minuto por IP
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/predictions:${ip}`, 30)) {
+  if (!(await checkRateLimit(`POST:/api/predictions:${ip}`, 30))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 

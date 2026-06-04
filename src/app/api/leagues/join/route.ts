@@ -14,7 +14,7 @@ function adminClient() {
 export async function POST(request: Request) {
   // Rate limit: 10 intentos por minuto por IP
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/leagues/join:${ip}`, 10)) {
+  if (!(await checkRateLimit(`POST:/api/leagues/join:${ip}`, 10))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 

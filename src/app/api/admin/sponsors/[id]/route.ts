@@ -24,7 +24,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`PATCH:/api/admin/sponsors:${ip}`, 20)) {
+  if (!(await checkRateLimit(`PATCH:/api/admin/sponsors:${ip}`, 20))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 
@@ -65,7 +65,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`DELETE:/api/admin/sponsors:${ip}`, 20)) {
+  if (!(await checkRateLimit(`DELETE:/api/admin/sponsors:${ip}`, 20))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 

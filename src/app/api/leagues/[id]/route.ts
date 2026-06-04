@@ -8,7 +8,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`DELETE:/api/leagues/${params.id}:${ip}`, 10)) {
+  if (!(await checkRateLimit(`DELETE:/api/leagues/${params.id}:${ip}`, 10))) {
     return NextResponse.json({ error: "Demasiadas solicitudes. Intentá en un minuto." }, { status: 429 });
   }
 
@@ -50,7 +50,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`PATCH:/api/leagues/${params.id}:${ip}`, 20)) {
+  if (!(await checkRateLimit(`PATCH:/api/leagues/${params.id}:${ip}`, 20))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 

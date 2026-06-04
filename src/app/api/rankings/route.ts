@@ -4,7 +4,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`GET:/api/rankings:${ip}`, 30)) {
+  if (!(await checkRateLimit(`GET:/api/rankings:${ip}`, 30))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 

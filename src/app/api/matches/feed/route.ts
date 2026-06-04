@@ -9,7 +9,7 @@ export type MatchWithPrediction = MatchWithTeams & {
 
 export async function GET(request: Request) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`GET:/api/matches/feed:${ip}`, 60)) {
+  if (!(await checkRateLimit(`GET:/api/matches/feed:${ip}`, 60))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 

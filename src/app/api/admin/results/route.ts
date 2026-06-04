@@ -10,22 +10,24 @@ function serviceClient() {
   );
 }
 
-async function assertAdmin(request: Request): Promise<boolean> {
+async function assertAdmin(request: Request): Promise<{ ok: boolean; userId?: string }> {
   const { user } = await getAuthUser(request);
-  if (!user?.email) return false;
+  if (!user?.email) return { ok: false };
   const allowed = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase());
-  return allowed.includes(user.email.toLowerCase());
+  const ok = allowed.includes(user.email.toLowerCase());
+  return { ok, userId: ok ? user.id : undefined };
 }
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`POST:/api/admin/results:${ip}`, 20)) {
+  if (!(await checkRateLimit(`POST:/api/admin/results:${ip}`, 20))) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 
-  if (!(await assertAdmin(request))) {
+  const { ok, userId: adminUserId } = await assertAdmin(request);
+  if (!ok) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
 
   await supabase.from("result_audit_log").insert({
     match_id,
+    changed_by: adminUserId,
     source: "admin",
     previous_home: match.home_score ?? null,
     previous_away: match.away_score ?? null,
