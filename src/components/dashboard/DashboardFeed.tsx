@@ -106,7 +106,12 @@ export function DashboardFeed({ displayName }: Props) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const [teamSearch, setTeamSearch] = useState("");
-  const [localTZ, setLocalTZ] = useState<string>("UTC");
+  const [localTZ, setLocalTZ] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+    return "UTC";
+  });
   const [hasSponsors, setHasSponsors] = useState(false);
 
   useEffect(() => {

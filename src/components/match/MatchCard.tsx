@@ -40,22 +40,26 @@ type Props = {
 // ─── Time helper (sin cambios) ────────────────────────────────────────────────
 
 function formatMatchTime(scheduled_at: string): string {
-  return new Date(scheduled_at).toLocaleTimeString("es-AR", {
+  const date = new Date(scheduled_at.endsWith("Z") ? scheduled_at : scheduled_at + "Z");
+  return date.toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
 }
 
 // ─── State badge ──────────────────────────────────────────────────────────────
 
 function formatDateLabel(scheduledAt: string): string {
-  const scheduled = new Date(scheduledAt);
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const scheduled = new Date(scheduledAt.endsWith("Z") ? scheduledAt : scheduledAt + "Z");
   const now = new Date();
-  const fmt = (d: Date) => d.toLocaleDateString("es-AR");
+  const fmt = (d: Date) => d.toLocaleDateString("es-AR", { timeZone: tz });
   if (fmt(scheduled) === fmt(now)) return "HOY";
   return scheduled
     .toLocaleDateString("es-AR", {
+      timeZone: tz,
       weekday: "short",
       day: "numeric",
       month: "short",
