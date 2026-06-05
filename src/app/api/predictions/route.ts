@@ -83,14 +83,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const now = new Date().toISOString();
-
   // Try INSERT first. On unique conflict (user already predicted this match), fall back to UPDATE.
   // Cannot use upsert: ON CONFLICT DO UPDATE SET would include user_id/match_id which are not
-  // in the column-level UPDATE grant (only home_score, away_score, updated_at are allowed).
+  // in the column-level UPDATE grant (only home_score, away_score are allowed).
+  // updated_at is set server-side by trg_predictions_updated_at (migration 012).
   const { data: inserted, error: insertError } = await supabase
     .from("predictions")
-    .insert({ user_id: user.id, match_id, home_score, away_score, updated_at: now })
+    .insert({ user_id: user.id, match_id, home_score, away_score })
     .select()
     .single();
 
@@ -100,7 +99,7 @@ export async function POST(request: Request) {
   if (insertError?.code === "23505") {
     const { data: updated, error: updateError } = await supabase
       .from("predictions")
-      .update({ home_score, away_score, updated_at: now })
+      .update({ home_score, away_score })
       .eq("user_id", user.id)
       .eq("match_id", match_id)
       .select()
