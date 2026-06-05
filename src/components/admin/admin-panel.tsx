@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { submitResult, toggleSponsorActive, uploadSponsorLogo } from "@/app/(protected)/admin/actions";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
+import { AuditSection } from "@/components/admin/audit-section";
 import type { MatchWithTeams } from "@/types/matches";
 
 export type Sponsor = {
@@ -721,6 +722,9 @@ export function AdminPanel({ matches, sponsors }: Props) {
 
       {/* Sponsors section */}
       <SponsorsSection sponsors={sponsors} onRefresh={() => router.refresh()} />
+
+      {/* Audit section */}
+      <AuditSection />
 
       {/* Modal */}
       {editing && (

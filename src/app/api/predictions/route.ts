@@ -41,6 +41,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }
 
+  if (!(await checkRateLimit(`ratelimit:user:${user.id}`, 20))) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

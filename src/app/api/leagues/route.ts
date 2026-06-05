@@ -54,6 +54,10 @@ export async function POST(request: Request) {
     const { user, supabase } = await getAuthUser(request);
     if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
+    if (!(await checkRateLimit(`ratelimit:user:${user.id}`, 10))) {
+      return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name || name.length < 2 || name.length > 50) {

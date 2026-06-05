@@ -15,6 +15,10 @@ export async function DELETE(
   const { user, supabase } = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
+  if (!(await checkRateLimit(`ratelimit:user:${user.id}`, 10))) {
+    return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
+  }
+
   const leagueId = params.id;
 
   const { data: league, error: leagueError } = await supabase
