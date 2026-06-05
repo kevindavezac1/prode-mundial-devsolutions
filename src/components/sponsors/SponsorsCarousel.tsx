@@ -139,9 +139,9 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
         </a>
 
         {/* Nav arrows — only when multiple sponsors */}
-        {sponsors.length > 1 && current > 0 && (
+        {sponsors.length > 1 && (
           <button
-            onClick={() => goTo(current - 1)}
+            onClick={() => goTo((current - 1 + sponsors.length) % sponsors.length)}
             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center transition-all active:scale-90"
             style={{
               width: "26px",
@@ -157,9 +157,9 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
             ‹
           </button>
         )}
-        {sponsors.length > 1 && current < sponsors.length - 1 && (
+        {sponsors.length > 1 && (
           <button
-            onClick={() => goTo(current + 1)}
+            onClick={() => goTo((current + 1) % sponsors.length)}
             className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center transition-all active:scale-90"
             style={{
               width: "26px",
