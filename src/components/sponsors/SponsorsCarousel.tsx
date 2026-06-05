@@ -60,78 +60,122 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
 
   function goTo(i: number) {
     if (i === current) return;
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     setVisible(false);
-    setTimeout(() => { setCurrent(i); setVisible(true); }, 300);
+    setTimeout(() => {
+      setCurrent(i);
+      setVisible(true);
+      if (sponsors.length > 1) {
+        timerRef.current = setInterval(() => {
+          setVisible(false);
+          setTimeout(() => {
+            setCurrent((prev) => (prev + 1) % sponsors.length);
+            setVisible(true);
+          }, 300);
+        }, 4000);
+      }
+    }, 300);
   }
 
   return (
     <div className="px-4 pt-3 pb-1">
-      <a
-        href={sponsor.link_url ?? undefined}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
-        onClick={(e) => { if (!sponsor.link_url) e.preventDefault(); }}
-      >
-        <div
-          className="flex items-center gap-4 rounded-2xl overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #0d1120 0%, #0a0d18 100%)",
-            border: "1px solid rgba(212,175,55,0.3)",
-            height: "90px",
-            padding: "0 16px",
-          }}
+      <div className="relative">
+        <a
+          href={sponsor.link_url ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+          style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+          onClick={(e) => { if (!sponsor.link_url) e.preventDefault(); }}
         >
-          {/* Logo */}
           <div
-            className="w-[70px] h-[70px] rounded-xl shrink-0 flex items-center justify-center overflow-hidden"
+            className="flex items-center gap-4 rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "linear-gradient(135deg, #0d1120 0%, #0a0d18 100%)",
+              border: "1px solid rgba(212,175,55,0.3)",
+              height: "90px",
+              padding: sponsors.length > 1 ? "0 44px" : "0 16px",
             }}
           >
-            {sponsor.logo_url ? (
-              <img src={sponsor.logo_url} alt={sponsor.nombre} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.35)" }}>
-                {sponsor.nombre.slice(0, 2).toUpperCase()}
-              </span>
-            )}
-          </div>
-
-          {/* Text */}
-          <div className="flex-1 min-w-0">
-            <span
-              className="inline-block text-[8px] font-bold px-1.5 py-0.5 rounded mb-1"
+            {/* Logo */}
+            <div
+              className="w-[70px] h-[70px] rounded-xl shrink-0 flex items-center justify-center overflow-hidden"
               style={{
-                background: "rgba(212,175,55,0.1)",
-                color: "rgba(212,175,55,0.65)",
-                letterSpacing: "1px",
-                border: "1px solid rgba(212,175,55,0.2)",
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
               }}
             >
-              PATROCINADOR
-            </span>
-            <p className="font-bold text-base text-white truncate leading-tight">{sponsor.nombre}</p>
-            {sponsor.descripcion && (
-              <p className="text-xs truncate mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {sponsor.descripcion}
-              </p>
-            )}
-          </div>
+              {sponsor.logo_url ? (
+                <img src={sponsor.logo_url} alt={sponsor.nombre} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {sponsor.nombre.slice(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
 
-          {/* CTA */}
-          {sponsor.link_url && (
-            <span
-              className="text-xs font-semibold shrink-0"
-              style={{ color: "rgba(212,175,55,0.7)", whiteSpace: "nowrap" }}
-            >
-              Ver más →
-            </span>
-          )}
-        </div>
-      </a>
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <span
+                className="inline-block text-[8px] font-bold px-1.5 py-0.5 rounded mb-1"
+                style={{
+                  background: "rgba(212,175,55,0.1)",
+                  color: "rgba(212,175,55,0.65)",
+                  letterSpacing: "1px",
+                  border: "1px solid rgba(212,175,55,0.2)",
+                }}
+              >
+                PATROCINADOR
+              </span>
+              <p className="font-bold text-base text-white truncate leading-tight">{sponsor.nombre}</p>
+              {sponsor.descripcion && (
+                <p className="text-xs truncate mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  {sponsor.descripcion}
+                </p>
+              )}
+            </div>
+
+          </div>
+        </a>
+
+        {/* Nav arrows — only when multiple sponsors */}
+        {sponsors.length > 1 && current > 0 && (
+          <button
+            onClick={() => goTo(current - 1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center transition-all active:scale-90"
+            style={{
+              width: "26px",
+              height: "26px",
+              borderRadius: "8px",
+              background: "rgba(7,9,15,0.75)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.55)",
+              fontSize: "13px",
+            }}
+            aria-label="Anterior"
+          >
+            ‹
+          </button>
+        )}
+        {sponsors.length > 1 && current < sponsors.length - 1 && (
+          <button
+            onClick={() => goTo(current + 1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center transition-all active:scale-90"
+            style={{
+              width: "26px",
+              height: "26px",
+              borderRadius: "8px",
+              background: "rgba(7,9,15,0.75)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.55)",
+              fontSize: "13px",
+            }}
+            aria-label="Siguiente"
+          >
+            ›
+          </button>
+        )}
+      </div>
 
       {sponsors.length > 1 && (
         <div className="flex justify-center gap-1.5 mt-2">
