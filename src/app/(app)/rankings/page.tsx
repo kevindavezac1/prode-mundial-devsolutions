@@ -22,8 +22,7 @@ const getGlobalRankings = unstable_cache(
       .from("profiles")
       .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
       .order("total_points", { ascending: false })
-      .order("exact_predictions", { ascending: false })
-      .limit(20);
+      .order("exact_predictions", { ascending: false });
     return (data ?? []) as RankingEntry[];
   },
   ["global-rankings"],

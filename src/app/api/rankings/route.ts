@@ -17,8 +17,7 @@ export async function GET(request: Request) {
     .from("profiles")
     .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
     .order("total_points", { ascending: false })
-    .order("exact_predictions", { ascending: false })
-    .limit(20);
+    .order("exact_predictions", { ascending: false });
 
   if (error) {
     console.error("[GET /api/rankings]", error);
