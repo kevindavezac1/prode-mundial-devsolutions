@@ -182,7 +182,7 @@ function ScoreCenter({
     );
   }
 
-  if (state === "upcoming-predicted") {
+  if (state === "upcoming-predicted" || state === "locked-predicted") {
     return (
       <div className="flex items-center gap-1 px-2">
         <span className="font-display text-[44px] text-white leading-none">
@@ -308,6 +308,19 @@ function CardFooter({
       <div className={dividerClass}>
         <p className="text-[10px] text-white/40 text-center" style={{ letterSpacing: "0.5px" }}>
           Tu predicción enviada · tappeá para editar
+        </p>
+        <p className="text-[9px] text-white/25 text-center mt-0.5">
+          Podés cambiarla hasta 5 min antes del partido
+        </p>
+      </div>
+    );
+  }
+
+  if (state === "locked-predicted") {
+    return (
+      <div className={dividerClass}>
+        <p className="text-[10px] text-white/50 text-center font-semibold" style={{ letterSpacing: "0.5px" }}>
+          🔒 Predicción enviada
         </p>
       </div>
     );

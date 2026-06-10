@@ -56,6 +56,7 @@ export function isFinished(match: MatchTimingInput): boolean {
 export type MatchVisualState =
   | "upcoming-unpredicted"
   | "upcoming-predicted"
+  | "locked-predicted"
   | "locked-unpredicted"
   | "live"
   | "finished";
@@ -69,7 +70,7 @@ export function getMatchState(
   if (isLive(match, now)) return "live";
   const hasPrediction = !!userPrediction;
   if (isLocked(match, now)) {
-    return hasPrediction ? "upcoming-predicted" : "locked-unpredicted";
+    return hasPrediction ? "locked-predicted" : "locked-unpredicted";
   }
   return hasPrediction ? "upcoming-predicted" : "upcoming-unpredicted";
 }
