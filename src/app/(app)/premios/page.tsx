@@ -211,7 +211,7 @@ export default async function PremiosPage() {
         {/* Fase de Grupos */}
         <Divider label="FASE DE GRUPOS" />
 
-        <PrizeCard fase="Fecha 1" condicion="Más puntos en la fecha · desempate por exactos" premio="JUEGO DE MESA" sponsor="Vincent Juguetería" sponsorKey="vincent" border="rgba(255,255,255,0.08)" />
+        <PrizeCard fase="Fecha 1" condicion="Más puntos en la fecha · desempate por exactos" premio="JUEGO DE MESA" sponsor="Vincent Librería y Juguetería" sponsorKey="vincent" border="rgba(255,255,255,0.08)" />
         <PrizeCard fase="Fecha 2" condicion="Más puntos en la fecha · desempate por exactos" premio="PARLANTE BLUETOOTH" sponsor="Celumania" sponsorKey="celumania" border="rgba(255,255,255,0.08)" />
         <PrizeCard fase="Fecha 3" condicion="Más puntos en la fecha · desempate por exactos" premio="AURICULAR" sponsor="Celumania" sponsorKey="celumania" border="rgba(255,255,255,0.08)" />
 
