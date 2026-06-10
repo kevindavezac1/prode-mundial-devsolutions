@@ -56,7 +56,10 @@ export async function PATCH(
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[PATCH /api/admin/sponsors/:id]", error);
+    return NextResponse.json({ error: "Error interno." }, { status: 500 });
+  }
   return NextResponse.json({ data });
 }
 
@@ -80,6 +83,9 @@ export async function DELETE(
   await supabase.storage.from("sponsors").remove([`${id}/logo.jpg`, `${id}/logo.png`, `${id}/logo.webp`]);
 
   const { error } = await supabase.from("sponsors").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[DELETE /api/admin/sponsors/:id]", error);
+    return NextResponse.json({ error: "Error interno." }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

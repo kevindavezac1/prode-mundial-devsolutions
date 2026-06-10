@@ -18,7 +18,7 @@ export default async function AppLayout({
   // Query total_points desde profiles
   const { data: profile } = await supabase
     .from("profiles")
-    .select("total_points")
+    .select("total_points, display_name, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -27,7 +27,11 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen pb-16" style={{ background: "#07090f" }}>
       <div className="md:max-w-lg md:mx-auto">
-        <TopHeader userPoints={userPoints} />
+        <TopHeader
+          userPoints={userPoints}
+          avatarUrl={profile?.avatar_url}
+          displayName={profile?.display_name}
+        />
         <main>{children}</main>
       </div>
       <BottomNav />

@@ -50,6 +50,9 @@ export async function POST(request: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[POST /api/admin/sponsors]", error);
+    return NextResponse.json({ error: "Error interno." }, { status: 500 });
+  }
   return NextResponse.json({ data });
 }

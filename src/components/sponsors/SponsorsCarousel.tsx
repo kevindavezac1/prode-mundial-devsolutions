@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+const SUPABASE_STORAGE_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/`;
+function isTrustedUrl(url: string | null): url is string {
+  return !!url && url.startsWith(SUPABASE_STORAGE_PREFIX);
+}
+
 type Sponsor = {
   id: string;
   nombre: string;
@@ -93,7 +98,7 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
             style={{
               background: "linear-gradient(135deg, #0d1120 0%, #0a0d18 100%)",
               border: "1px solid rgba(212,175,55,0.3)",
-              height: "90px",
+              height: "100px",
               padding: sponsors.length > 1 ? "0 44px" : "0 16px",
             }}
           >
@@ -105,7 +110,7 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
                 border: "1px solid rgba(255,255,255,0.1)",
               }}
             >
-              {sponsor.logo_url ? (
+              {isTrustedUrl(sponsor.logo_url) ? (
                 <img src={sponsor.logo_url} alt={sponsor.nombre} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-xl font-bold" style={{ color: "rgba(255,255,255,0.35)" }}>
@@ -127,9 +132,29 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
               >
                 PATROCINADOR
               </span>
-              <p className="font-bold text-base text-white truncate leading-tight">{sponsor.nombre}</p>
+              <p
+                className="font-bold text-sm text-white leading-tight"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical" as const,
+                  overflow: "hidden",
+                }}
+              >
+                {sponsor.nombre}
+              </p>
               {sponsor.descripcion && (
-                <p className="text-xs truncate mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+                <p
+                  className="text-xs mt-0.5"
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                    lineHeight: "1.4",
+                  }}
+                >
                   {sponsor.descripcion}
                 </p>
               )}

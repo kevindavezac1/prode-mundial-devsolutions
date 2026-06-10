@@ -1,3 +1,13 @@
+/**
+ * Este middleware solo refresca cookies de Supabase.
+ * La protección de rutas se maneja en los layouts:
+ * - Rutas autenticadas: src/app/(app)/layout.tsx
+ * - Rutas admin: src/app/(protected)/layout.tsx o page.tsx
+ *
+ * IMPORTANTE: cualquier nueva ruta bajo (app)/ o (protected)/
+ * queda cubierta automáticamente por su layout guard.
+ * No agregar nuevos route groups sin layout guard propio.
+ */
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 

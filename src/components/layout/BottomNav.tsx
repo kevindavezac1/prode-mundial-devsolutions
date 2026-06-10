@@ -8,7 +8,7 @@ const tabs = [
   { href: "/leagues",   label: "LIGAS",    icon: "🏆" },
   { href: "/standings", label: "GRUPOS",   icon: "📋" },
   { href: "/rankings",  label: "RANKING",  icon: "📊" },
-  { href: "/profile",   label: "PERFIL",   icon: "👤" },
+  { href: "/premios",   label: "PREMIOS",  icon: "🎁" },
 ];
 
 export default function BottomNav() {
