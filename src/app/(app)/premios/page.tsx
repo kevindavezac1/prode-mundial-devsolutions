@@ -218,10 +218,10 @@ export default async function PremiosPage() {
         {/* Fases Eliminatorias */}
         <Divider label="FASES ELIMINATORIAS" />
 
-        <PrizeCard fase="16avos de Final" condicion="Más puntos en la fase · desempate por exactos" premio="SHORT DEPORTIVO" sponsor="Emebe" sponsorKey="emebe" border="rgba(255,255,255,0.08)" />
+        <PrizeCard fase="16avos de Final" condicion="Más puntos en la fase · desempate por exactos" premio="SHORT DEPORTIVO" sponsor="EMEBE Indumentaria" sponsorKey="emebe" border="rgba(255,255,255,0.08)" />
         <PrizeCard fase="Octavos de Final" condicion="Más puntos en la fase · desempate por exactos" premio="MATE IMPERIAL + BOMBILLA" sponsor="Guardapampa" sponsorKey="guardapampa" border="rgba(255,255,255,0.1)" />
         <PrizeCard fase="Cuartos de Final" condicion="Más puntos en la fase · desempate por puntos totales" premio="MES DE GIMNASIO GRATIS" sponsor="Hay Equipo Premier Club" sponsorKey="hay-equipo" border="rgba(255,255,255,0.12)" />
-        <PrizeCard fase="Semifinal" condicion="Más puntos en la fase · desempate por puntos totales" premio="CAMPERA DEPORTIVA" sponsor="Emebe" sponsorKey="emebe" border="rgba(255,255,255,0.15)" />
+        <PrizeCard fase="Semifinal" condicion="Más puntos en la fase · desempate por puntos totales" premio="CAMPERA DEPORTIVA" sponsor="EMEBE Indumentaria" sponsorKey="emebe" border="rgba(255,255,255,0.15)" />
 
         {/* Gran Final */}
         <Divider label="GRAN FINAL" />
