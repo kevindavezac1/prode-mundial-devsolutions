@@ -169,8 +169,8 @@ export function DashboardFeed({ displayName }: Props) {
   const allTeams = useMemo(() => {
     const map = new Map<number, Team>();
     for (const m of matches) {
-      map.set(m.home_team.id, m.home_team);
-      map.set(m.away_team.id, m.away_team);
+      if (m.home_team) map.set(m.home_team.id, m.home_team);
+      if (m.away_team) map.set(m.away_team.id, m.away_team);
     }
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [matches]);
@@ -182,8 +182,8 @@ export function DashboardFeed({ displayName }: Props) {
     return [...matches]
       .filter(
         (m) =>
-          m.home_team.id === selectedTeam.id ||
-          m.away_team.id === selectedTeam.id
+          m.home_team?.id === selectedTeam.id ||
+          m.away_team?.id === selectedTeam.id
       )
       .sort(
         (a, b) =>
