@@ -222,7 +222,7 @@ export function StandingsView({ groups, qualifyingThirds, tiedThirds }: Standing
 
   return (
     <div className="p-4 pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {groups.map((g) => (
           <GroupTable
             key={g.group}
