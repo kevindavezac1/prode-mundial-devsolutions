@@ -3,6 +3,7 @@ export type Team = {
   name: string;
   code: string;
   flag_url: string | null;
+  group_name?: string | null;
 };
 
 export type MatchWithTeams = {

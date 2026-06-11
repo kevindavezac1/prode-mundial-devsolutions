@@ -12,11 +12,13 @@ type Team = {
   name: string;
   code: string;
   flag_url?: string | null;
+  group_name?: string | null;
 };
 
 export type MatchCardMatch = {
   id: number;
   scheduled_at: string;
+  phase?: string;
   status: "scheduled" | "live" | "finished" | "cancelled";
   home_team: Team;
   away_team: Team;
@@ -490,7 +492,9 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-4 pb-0">
         <StateBadge state={state} time={time} dateLabel={dateLabel} />
-        {match.group_name && <GroupBadge name={match.group_name} />}
+        {match.phase === 'group' && match.home_team.group_name && (
+          <GroupBadge name={`Grupo ${match.home_team.group_name}`} />
+        )}
       </div>
 
       {/* Match body — symmetric layout */}

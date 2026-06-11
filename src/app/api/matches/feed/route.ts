@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       .select(
         `id, match_number, phase, scheduled_at, venue, status,
          home_score, away_score,
-         home_team:teams!home_team_id(id, name, code, flag_url),
-         away_team:teams!away_team_id(id, name, code, flag_url)`
+         home_team:teams!home_team_id(id, name, code, flag_url, group_name),
+         away_team:teams!away_team_id(id, name, code, flag_url, group_name)`
       )
       .order("scheduled_at"),
     supabase
