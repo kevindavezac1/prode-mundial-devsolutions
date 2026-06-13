@@ -18,6 +18,9 @@ export async function login(input: LoginInput, redirectTo?: string) {
   });
 
   if (error) {
+    if (error.message === "Email not confirmed") {
+      return { error: "Tenés que verificar tu email antes de entrar. Revisá tu bandeja de entrada." };
+    }
     return { error: "Email o contraseña incorrectos." };
   }
 

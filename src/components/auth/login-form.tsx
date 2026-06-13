@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { login, loginWithGoogle } from "@/app/(auth)/login/actions";
 
-export function LoginForm({ redirectTo }: { redirectTo?: string }) {
-  const [serverError, setServerError] = useState<string | null>(null);
+export function LoginForm({ redirectTo, initialError }: { redirectTo?: string; initialError?: string }) {
+  const [serverError, setServerError] = useState<string | null>(initialError ?? null);
   const [isPending, startTransition] = useTransition();
 
   const {

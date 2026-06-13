@@ -9,7 +9,7 @@ export async function register(input: RegisterInput, redirectTo?: string) {
     return { error: "Datos inválidos." };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const emailRedirectTo = redirectTo?.startsWith("/")
     ? `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectTo)}`
     : `${siteUrl}/auth/callback`;
