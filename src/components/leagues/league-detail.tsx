@@ -457,25 +457,12 @@ export function LeagueDetailView({ league, userId }: Props) {
               border: "1px solid rgba(255,255,255,0.07)",
             }}
           >
-            <div className="flex items-center justify-between">
-              <p
-                className="text-[10px] font-bold"
-                style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
-              >
-                LINK PERMANENTE
-              </p>
-              <span
-                className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                style={{
-                  background: "rgba(212,175,55,0.12)",
-                  border: "1px solid rgba(212,175,55,0.25)",
-                  color: "rgba(212,175,55,0.7)",
-                  letterSpacing: "1px",
-                }}
-              >
-                QR · AFICHES
-              </span>
-            </div>
+            <p
+              className="text-[10px] font-bold"
+              style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}
+            >
+              LINK PERMANENTE
+            </p>
             <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
               Esta URL nunca cambia. Expulsados no pueden entrar.
             </p>
@@ -582,6 +569,7 @@ export function LeagueDetailView({ league, userId }: Props) {
                   position={idx + 1}
                   isMe={member.user_id === userId}
                   isOwner={isOwner}
+                  leagueId={league.id}
                   onKick={() => confirmKick(member)}
                 />
               ))
@@ -632,12 +620,14 @@ function MemberRow({
   position,
   isMe,
   isOwner,
+  leagueId,
   onKick,
 }: {
   member: LeagueMember;
   position: number;
   isMe: boolean;
   isOwner: boolean;
+  leagueId: string;
   onKick: () => void;
 }) {
   const medal =
@@ -664,7 +654,12 @@ function MemberRow({
         <span className="text-sm text-white truncate font-medium">
           {member.display_name}
           {isMe && (
-            <span className="ml-1 text-[10px] text-wc-red font-bold"> (vos)</span>
+            <span
+              className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded"
+              style={{ background: "rgba(228,0,43,0.22)", color: "rgba(228,0,43,0.95)", letterSpacing: "0.5px" }}
+            >
+              VOS
+            </span>
           )}
         </span>
       </div>
@@ -703,13 +698,14 @@ function MemberRow({
   const gridStyle: React.CSSProperties = {
     gridTemplateColumns: isOwner ? "2rem 1fr 4rem 4rem" : "2rem 1fr 4rem",
     borderBottom: "1px solid rgba(255,255,255,0.04)",
-    background: isMe ? "rgba(228,0,43,0.06)" : "transparent",
+    background: isMe ? "rgba(228,0,43,0.13)" : "transparent",
+    borderLeft: isMe ? "3px solid rgba(228,0,43,0.55)" : "3px solid transparent",
   };
 
   if (member.username) {
     return (
       <Link
-        href={`/profile/${member.username}`}
+        href={`/profile/${member.username}?from=/leagues/${leagueId}`}
         className="grid gap-2 px-4 py-3 items-center transition-colors hover:bg-white/[0.03]"
         style={gridStyle}
       >

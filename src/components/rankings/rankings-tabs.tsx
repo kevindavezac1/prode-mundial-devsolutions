@@ -114,7 +114,8 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
             className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] gap-2 px-4 py-3 items-center transition-all active:scale-[0.99]"
             style={{
               borderBottom: "1px solid rgba(255,255,255,0.04)",
-              background: isMe ? "rgba(228,0,43,0.06)" : "transparent",
+              background: isMe ? "rgba(228,0,43,0.13)" : "transparent",
+              borderLeft: isMe ? "3px solid rgba(228,0,43,0.55)" : "3px solid transparent",
             }}
           >
             <span className="text-sm text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -140,7 +141,12 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
               <span className="text-sm text-white truncate">
                 {entry.display_name}
                 {isMe && (
-                  <span className="ml-1 text-[10px] text-wc-red font-bold"> (vos)</span>
+                  <span
+                    className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                    style={{ background: "rgba(228,0,43,0.22)", color: "rgba(228,0,43,0.95)", letterSpacing: "0.5px" }}
+                  >
+                    VOS
+                  </span>
                 )}
               </span>
             </div>
@@ -173,7 +179,7 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
           <Link
             href={`/profile/${userEntry.username}`}
             className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] gap-2 px-4 py-3 items-center transition-all active:scale-[0.99]"
-            style={{ background: "rgba(228,0,43,0.06)" }}
+            style={{ background: "rgba(228,0,43,0.13)", borderLeft: "3px solid rgba(228,0,43,0.55)" }}
           >
             <span className="text-sm text-center">
               <span style={{ color: "rgba(255,255,255,0.8)" }}>{userEntry.rank}</span>
@@ -192,7 +198,12 @@ function GlobalTab({ rankings, userId, userEntry }: { rankings: RankingEntry[]; 
               </div>
               <span className="text-sm text-white truncate">
                 {userEntry.display_name}
-                <span className="ml-1 text-[10px] text-wc-red font-bold"> (vos)</span>
+                <span
+                  className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(228,0,43,0.22)", color: "rgba(228,0,43,0.95)", letterSpacing: "0.5px" }}
+                >
+                  VOS
+                </span>
               </span>
             </div>
             <span

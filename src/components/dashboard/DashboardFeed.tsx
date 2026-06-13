@@ -161,7 +161,7 @@ export function DashboardFeed({ displayName }: Props) {
     const finished = day.filter((m) => isFinished(m)).sort(byTime);
     const live = day.filter((m) => !isFinished(m) && isLive(m, now)).sort(byTime);
     const pending = day.filter((m) => !isFinished(m) && !isLive(m, now)).sort(byTime);
-    return [...finished, ...live, ...pending];
+    return [...live, ...finished, ...pending];
   }, [matches, selectedDate, now, localTZ]);
 
   // ─── All unique teams extracted from feed ────────────────────────────────

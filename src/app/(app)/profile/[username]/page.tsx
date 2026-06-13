@@ -9,8 +9,10 @@ export const metadata: Metadata = { title: "Perfil" };
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: { username: string };
+  searchParams?: { from?: string };
 }) {
   const supabase = await createClient();
 
@@ -53,7 +55,13 @@ export default async function PublicProfilePage({
         className="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center gap-3"
         style={{ background: "rgba(7,9,15,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
       >
-        <Link href="/rankings" className="text-sm shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>‹ Rankings</Link>
+        <Link
+          href={searchParams?.from ?? "/rankings"}
+          className="text-sm shrink-0"
+          style={{ color: "rgba(255,255,255,0.5)" }}
+        >
+          {searchParams?.from?.startsWith("/leagues/") ? "‹ Liga" : "‹ Rankings"}
+        </Link>
         <h1 className="font-bold text-lg truncate text-white">{profile.display_name}</h1>
       </header>
 
