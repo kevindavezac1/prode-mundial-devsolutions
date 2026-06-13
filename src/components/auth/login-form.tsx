@@ -82,6 +82,15 @@ export function LoginForm({ redirectTo, initialError }: { redirectTo?: string; i
           {errors.password && (
             <p className="text-xs text-destructive">{errors.password.message}</p>
           )}
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-xs hover:underline"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </div>
 
         {serverError && (
