@@ -34,7 +34,8 @@ export function SponsorsCarousel({ onHasSponsors }: { onHasSponsors?: (has: bool
         const hasSponsors = !!(data && data.length > 0);
         onHasSponsors?.(hasSponsors);
         if (hasSponsors) {
-          setSponsors(data!);
+          const shuffled = [...data!].sort(() => Math.random() - 0.5);
+          setSponsors(shuffled);
           data.forEach((s) => {
             if (s.logo_url) {
               const img = new Image();
