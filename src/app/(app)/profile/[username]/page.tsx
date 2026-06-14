@@ -16,13 +16,18 @@ export default async function PublicProfilePage({
 }) {
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
-    .eq("username", params.username)
-    .single();
+  const [{ data: profile }, { data: { user } }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
+      .eq("username", params.username)
+      .single(),
+    supabase.auth.getUser(),
+  ]);
 
   if (!profile) notFound();
+
+  const isOwnProfile = !!user && user.id === profile.id;
 
   const [rankResult, predictionsResult] = await Promise.all([
     supabase
@@ -102,7 +107,7 @@ export default async function PublicProfilePage({
           <p className="text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}>
             Predicciones (partidos finalizados)
           </p>
-          <PredictionHistory predictions={(predictionsResult.data ?? []) as Parameters<typeof PredictionHistory>[0]["predictions"]} />
+          <PredictionHistory predictions={(predictionsResult.data ?? []) as Parameters<typeof PredictionHistory>[0]["predictions"]} isOwnProfile={isOwnProfile} />
         </div>
       </div>
     </main>

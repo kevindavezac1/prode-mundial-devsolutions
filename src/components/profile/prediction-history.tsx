@@ -10,25 +10,27 @@ type PredictionRow = {
   away_score: number;
   outcome: "exact" | "correct" | "incorrect";
   points_earned: number;
+  predicted_penalty_winner?: "home" | "away" | null;
   matches: {
     id: number;
     scheduled_at: string;
     home_score: number;
     away_score: number;
+    penalty_winner?: "home" | "away" | null;
     home_team: MatchTeam;
     away_team: MatchTeam;
   } | null;
 };
 
-type Props = { predictions: PredictionRow[] };
+type Props = { predictions: PredictionRow[]; isOwnProfile?: boolean };
 
 const OUTCOME = {
-  exact:     { label: "Exacto",     pts: "+300 pts", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.3)",  color: "#4ade80" },
-  correct:   { label: "Correcto",   pts: "+100 pts", bg: "rgba(234,179,8,0.12)", border: "rgba(234,179,8,0.3)",  color: "#facc15" },
-  incorrect: { label: "Incorrecto", pts: "+0 pts",   bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.25)", color: "#f87171" },
+  exact:     { label: "Exacto",     bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.3)",  color: "#4ade80" },
+  correct:   { label: "Correcto",   bg: "rgba(234,179,8,0.12)", border: "rgba(234,179,8,0.3)",  color: "#facc15" },
+  incorrect: { label: "Incorrecto", bg: "rgba(239,68,68,0.10)", border: "rgba(239,68,68,0.25)", color: "#f87171" },
 };
 
-export function PredictionHistory({ predictions }: Props) {
+export function PredictionHistory({ predictions, isOwnProfile = false }: Props) {
   if (predictions.length === 0) {
     return (
       <p className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -43,6 +45,11 @@ export function PredictionHistory({ predictions }: Props) {
         const m = p.matches;
         if (!m) return null;
         const cfg = OUTCOME[p.outcome];
+        const hasPenalties = m.penalty_winner != null;
+        const predPenStr = p.predicted_penalty_winner != null ? " (pen)" : "";
+        const realScoreStr = hasPenalties
+          ? `${m.home_score}–${m.away_score} (pen)`
+          : `${m.home_score}–${m.away_score}`;
 
         return (
           <div
@@ -74,7 +81,7 @@ export function PredictionHistory({ predictions }: Props) {
                   className="font-display text-lg font-bold text-white tabular-nums"
                   style={{ letterSpacing: "2px" }}
                 >
-                  {m.home_score}–{m.away_score}
+                  {realScoreStr}
                 </span>
               </div>
 
@@ -98,9 +105,9 @@ export function PredictionHistory({ predictions }: Props) {
               style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
             >
               <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Tu pred:{" "}
+                {isOwnProfile ? "Tu pred:" : "Su pred:"}{" "}
                 <span className="font-mono font-semibold text-white">
-                  {p.home_score}–{p.away_score}
+                  {p.home_score}–{p.away_score}{predPenStr}
                 </span>
               </span>
 
@@ -113,7 +120,7 @@ export function PredictionHistory({ predictions }: Props) {
                   letterSpacing: "0.3px",
                 }}
               >
-                {cfg.label} {cfg.pts}
+                {cfg.label} +{p.points_earned} pts
               </span>
             </div>
           </div>
