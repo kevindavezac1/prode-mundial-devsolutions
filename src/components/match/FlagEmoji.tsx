@@ -71,6 +71,7 @@ export function FlagEmoji({ code, flagUrl, className, alt }: Props) {
       <img
         src={flagUrl}
         alt={alt ?? code ?? "flag"}
+        loading="lazy"
         className={className}
         style={{ objectFit: "cover", objectPosition: "center" }}
         onError={() => setFlagUrlError(true)}
@@ -85,6 +86,7 @@ export function FlagEmoji({ code, flagUrl, className, alt }: Props) {
       <img
         src={flagCdnUrl}
         alt={alt ?? code ?? "flag"}
+        loading="lazy"
         className={className}
         style={{ objectFit: "cover", objectPosition: "center" }}
         onError={() => setFlagCdnError(true)}
