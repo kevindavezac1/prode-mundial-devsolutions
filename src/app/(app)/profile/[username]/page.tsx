@@ -57,6 +57,12 @@ export default async function PublicProfilePage({
 
   const globalRank = (rankResult.count ?? 0) + 1;
 
+  const sortedPredictions = (predictionsResult.data ?? []).sort((a, b) => {
+    const dateA = (a.matches as { scheduled_at?: string } | null)?.scheduled_at ?? "";
+    const dateB = (b.matches as { scheduled_at?: string } | null)?.scheduled_at ?? "";
+    return dateB.localeCompare(dateA);
+  });
+
   return (
     <main className="min-h-screen pb-8">
       <header
@@ -112,7 +118,7 @@ export default async function PublicProfilePage({
           <p className="text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "2px" }}>
             Predicciones (partidos finalizados)
           </p>
-          <PredictionHistory predictions={(predictionsResult.data ?? []) as Parameters<typeof PredictionHistory>[0]["predictions"]} isOwnProfile={isOwnProfile} />
+          <PredictionHistory predictions={sortedPredictions as Parameters<typeof PredictionHistory>[0]["predictions"]} isOwnProfile={isOwnProfile} />
         </div>
       </div>
     </main>
