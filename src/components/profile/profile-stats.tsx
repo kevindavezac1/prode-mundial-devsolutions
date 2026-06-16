@@ -4,6 +4,8 @@ type Props = {
   correctPredictions: number;
   totalPredictions: number;
   globalRank: number;
+  periodLabel?: string;
+  periodPoints?: number;
 };
 
 export function ProfileStats({
@@ -12,6 +14,8 @@ export function ProfileStats({
   correctPredictions,
   totalPredictions,
   globalRank,
+  periodLabel,
+  periodPoints,
 }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -20,6 +24,9 @@ export function ProfileStats({
       <StatCard label="EXACTAS" value={exactPredictions} hint="+300 pts" />
       <StatCard label="CORRECTAS" value={correctPredictions - exactPredictions} hint="+100 pts" />
       <StatCard label="JUGADAS" value={totalPredictions} />
+      {periodLabel !== undefined && periodPoints !== undefined && (
+        <StatCard label={`PTS ${periodLabel}`} value={periodPoints} />
+      )}
     </div>
   );
 }

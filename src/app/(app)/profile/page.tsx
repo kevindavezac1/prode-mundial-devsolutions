@@ -6,6 +6,7 @@ import { ProfileStats } from "@/components/profile/profile-stats";
 import { EditDisplayName } from "@/components/profile/edit-display-name";
 import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { logout } from "@/app/(app)/dashboard/actions";
+import { getCurrentPeriod, getPeriodPoints } from "@/lib/period";
 export const metadata: Metadata = { title: "Mi perfil" };
 
 export default async function ProfilePage() {
@@ -13,21 +14,27 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, period] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
+      .eq("id", user.id)
+      .single(),
+    getCurrentPeriod(),
+  ]);
 
   if (!profile) notFound();
 
-  const { count: higherRanked } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .or(
-      `total_points.gt.${profile.total_points},` +
-      `and(total_points.eq.${profile.total_points},exact_predictions.gt.${profile.exact_predictions})`
-    );
+  const [{ count: higherRanked }, periodPoints] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .or(
+        `total_points.gt.${profile.total_points},` +
+        `and(total_points.eq.${profile.total_points},exact_predictions.gt.${profile.exact_predictions})`
+      ),
+    period ? getPeriodPoints(user.id, period) : Promise.resolve(null),
+  ]);
 
   const globalRank = (higherRanked ?? 0) + 1;
 
@@ -76,6 +83,8 @@ export default async function ProfilePage() {
             correctPredictions={profile.correct_predictions}
             totalPredictions={profile.total_predictions}
             globalRank={globalRank}
+            periodLabel={period?.label}
+            periodPoints={periodPoints ?? undefined}
           />
         </div>
 

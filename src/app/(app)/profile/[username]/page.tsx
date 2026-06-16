@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileStats } from "@/components/profile/profile-stats";
 import { PredictionHistory } from "@/components/profile/prediction-history";
+import { getCurrentPeriod, getPeriodPoints } from "@/lib/period";
 
 export const metadata: Metadata = { title: "Perfil" };
 
@@ -16,20 +17,21 @@ export default async function PublicProfilePage({
 }) {
   const supabase = await createClient();
 
-  const [{ data: profile }, { data: { user } }] = await Promise.all([
+  const [{ data: profile }, { data: { user } }, period] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, username, display_name, avatar_url, total_points, exact_predictions, correct_predictions, total_predictions")
       .eq("username", params.username)
       .single(),
     supabase.auth.getUser(),
+    getCurrentPeriod(),
   ]);
 
   if (!profile) notFound();
 
   const isOwnProfile = !!user && user.id === profile.id;
 
-  const [rankResult, predictionsResult] = await Promise.all([
+  const [rankResult, predictionsResult, periodPoints] = await Promise.all([
     supabase
       .from("profiles")
       .select("*", { count: "exact", head: true })
@@ -50,6 +52,7 @@ export default async function PublicProfilePage({
       .eq("user_id", profile.id)
       .neq("outcome", "pending")
       .order("match_id", { ascending: false }),
+    period ? getPeriodPoints(profile.id, period) : Promise.resolve(null),
   ]);
 
   const globalRank = (rankResult.count ?? 0) + 1;
@@ -99,6 +102,8 @@ export default async function PublicProfilePage({
             correctPredictions={profile.correct_predictions}
             totalPredictions={profile.total_predictions}
             globalRank={globalRank}
+            periodLabel={period?.label}
+            periodPoints={periodPoints ?? undefined}
           />
         </div>
 
