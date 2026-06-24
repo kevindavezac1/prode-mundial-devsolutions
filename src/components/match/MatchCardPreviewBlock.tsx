@@ -67,8 +67,9 @@ export function MatchCardPreviewBlock() {
       match: {
         id: match.id,
         scheduled_at: match.scheduled_at,
-        home_team: match.home_team,
-        away_team: match.away_team,
+        phase: match.phase ?? "group",
+        home_team: match.home_team!,
+        away_team: match.away_team!,
       },
       prediction: prediction
         ? { home_score: prediction.home_score, away_score: prediction.away_score }

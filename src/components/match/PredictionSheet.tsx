@@ -15,6 +15,7 @@ type Team = {
 export type PredictionSheetMatch = {
   id: number;
   scheduled_at: string;
+  phase: string;
   home_team: Team;
   away_team: Team;
 };
@@ -22,6 +23,7 @@ export type PredictionSheetMatch = {
 export type PredictionSheetExisting = {
   home_score: number;
   away_score: number;
+  predicted_penalty_winner?: "home" | "away" | null;
 } | null;
 
 type Props = {
@@ -113,20 +115,32 @@ export function PredictionSheet({
 }: Props) {
   const [homeScore, setHomeScore] = useState<number>(0);
   const [awayScore, setAwayScore] = useState<number>(0);
+  const [penaltyWinner, setPenaltyWinner] = useState<"home" | "away" | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isKnockout = match?.phase !== "group";
+  const isDraw = homeScore === awayScore;
+  const requiresPenalty = isKnockout && isDraw;
 
   useEffect(() => {
     if (open && match) {
       setHomeScore(existingPrediction?.home_score ?? 0);
       setAwayScore(existingPrediction?.away_score ?? 0);
+      setPenaltyWinner(existingPrediction?.predicted_penalty_winner ?? null);
       setError(null);
       setSubmitting(false);
     }
-  }, [open, match?.id, existingPrediction?.home_score, existingPrediction?.away_score]);
+  }, [open, match?.id, existingPrediction?.home_score, existingPrediction?.away_score, existingPrediction?.predicted_penalty_winner]);
 
   async function handleSubmit() {
     if (!match || submitting) return;
+
+    if (requiresPenalty && !penaltyWinner) {
+      setError("En eliminatorias con empate, tenés que elegir quién gana en penales.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
@@ -137,6 +151,7 @@ export function PredictionSheet({
           match_id: match.id,
           home_score: homeScore,
           away_score: awayScore,
+          ...(requiresPenalty && { predicted_penalty_winner: penaltyWinner }),
         }),
       });
       if (!res.ok) {
@@ -236,6 +251,63 @@ export function PredictionSheet({
               </div>
               <ScoreStepper value={awayScore} onChange={setAwayScore} disabled={submitting} />
             </div>
+
+            {/* Penalty winner selector — solo en eliminatorias con empate */}
+            {requiresPenalty && (
+              <div
+                className="mt-2 mb-1 rounded-xl p-4"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.09)",
+                }}
+              >
+                <p
+                  className="text-[10px] font-bold text-center mb-3"
+                  style={{ color: "rgba(255,255,255,0.45)", letterSpacing: "1.5px" }}
+                >
+                  ¿QUIÉN GANA LA TANDA? +100 PTS SI ACERTÁS
+                </p>
+                <div className="flex gap-3">
+                  {(["home", "away"] as const).map((side) => {
+                    const team = side === "home" ? match.home_team : match.away_team;
+                    const selected = penaltyWinner === side;
+                    return (
+                      <button
+                        key={side}
+                        type="button"
+                        onClick={() => setPenaltyWinner(selected ? null : side)}
+                        disabled={submitting}
+                        className="flex-1 flex flex-col items-center gap-2 py-3 rounded-xl transition-all active:scale-95"
+                        style={{
+                          background: selected
+                            ? "rgba(116,172,223,0.15)"
+                            : "rgba(255,255,255,0.03)",
+                          border: selected
+                            ? "1.5px solid rgba(116,172,223,0.5)"
+                            : "1.5px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <FlagEmoji
+                          code={team.code}
+                          flagUrl={team.flag_url}
+                          className="w-8 h-8 rounded-full object-cover object-center"
+                          alt={team.name}
+                        />
+                        <span
+                          className="text-[10px] font-extrabold"
+                          style={{
+                            color: selected ? "rgba(116,172,223,1)" : "rgba(255,255,255,0.5)",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          {team.name.toUpperCase()}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Error */}
             {error && (

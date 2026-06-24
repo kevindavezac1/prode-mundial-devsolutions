@@ -209,15 +209,21 @@ export function DashboardFeed({ displayName }: Props) {
   // ─── Sheet handlers ───────────────────────────────────────────────────────
 
   function openSheet(m: MatchWithPrediction) {
+    if (!m.home_team || !m.away_team) return;
     setSheetState({
       match: {
         id: m.id,
         scheduled_at: m.scheduled_at,
+        phase: m.phase,
         home_team: m.home_team,
         away_team: m.away_team,
       },
       prediction: m.userPrediction
-        ? { home_score: m.userPrediction.home_score, away_score: m.userPrediction.away_score }
+        ? {
+            home_score: m.userPrediction.home_score,
+            away_score: m.userPrediction.away_score,
+            predicted_penalty_winner: m.userPrediction.predicted_penalty_winner ?? null,
+          }
         : null,
     });
   }

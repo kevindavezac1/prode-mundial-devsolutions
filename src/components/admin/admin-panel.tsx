@@ -636,16 +636,18 @@ export function AdminPanel({ matches, sponsors }: Props) {
               <div className="flex items-center gap-2">
                 {/* Home */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <FlagEmoji
-                    code={match.home_team.code}
-                    flagUrl={match.home_team.flag_url}
-                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                    alt={match.home_team.name}
-                  />
+                  {match.home_team && (
+                    <FlagEmoji
+                      code={match.home_team.code}
+                      flagUrl={match.home_team.flag_url}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      alt={match.home_team.name}
+                    />
+                  )}
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-white">{match.home_team.code}</p>
+                    <p className="text-sm font-bold text-white">{match.home_team?.code ?? "?"}</p>
                     <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      {match.home_team.name}
+                      {match.home_team?.name ?? (match.home_slot ?? "Por definir")}
                     </p>
                   </div>
                 </div>
@@ -668,16 +670,18 @@ export function AdminPanel({ matches, sponsors }: Props) {
 
                 {/* Away */}
                 <div className="flex items-center gap-2 flex-1 min-w-0 flex-row-reverse">
-                  <FlagEmoji
-                    code={match.away_team.code}
-                    flagUrl={match.away_team.flag_url}
-                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                    alt={match.away_team.name}
-                  />
+                  {match.away_team && (
+                    <FlagEmoji
+                      code={match.away_team.code}
+                      flagUrl={match.away_team.flag_url}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      alt={match.away_team.name}
+                    />
+                  )}
                   <div className="min-w-0 text-right">
-                    <p className="text-sm font-bold text-white">{match.away_team.code}</p>
+                    <p className="text-sm font-bold text-white">{match.away_team?.code ?? "?"}</p>
                     <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      {match.away_team.name}
+                      {match.away_team?.name ?? (match.away_slot ?? "Por definir")}
                     </p>
                   </div>
                 </div>
@@ -740,14 +744,14 @@ export function AdminPanel({ matches, sponsors }: Props) {
             <div>
               <h2 className="font-bold text-base text-white">Cargar resultado</h2>
               <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {editing.home_team.name} vs {editing.away_team.name}
+                {editing.home_team?.name ?? editing.home_slot ?? "?"} vs {editing.away_team?.name ?? editing.away_slot ?? "?"}
               </p>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex-1 space-y-1">
                 <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {editing.home_team.code}
+                  {editing.home_team?.code ?? "Local"}
                 </p>
                 <input
                   type="number"
@@ -769,7 +773,7 @@ export function AdminPanel({ matches, sponsors }: Props) {
               </span>
               <div className="flex-1 space-y-1">
                 <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {editing.away_team.code}
+                  {editing.away_team?.code ?? "Visitante"}
                 </p>
                 <input
                   type="number"

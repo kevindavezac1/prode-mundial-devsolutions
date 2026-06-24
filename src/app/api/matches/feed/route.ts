@@ -23,14 +23,14 @@ export async function GET(request: Request) {
       .from("matches")
       .select(
         `id, match_number, phase, scheduled_at, venue, status,
-         home_score, away_score,
+         home_score, away_score, penalty_winner, home_slot, away_slot,
          home_team:teams!home_team_id(id, name, code, flag_url, group_name),
          away_team:teams!away_team_id(id, name, code, flag_url, group_name)`
       )
       .order("scheduled_at"),
     supabase
       .from("predictions")
-      .select("id, match_id, home_score, away_score, outcome, points_earned")
+      .select("id, match_id, home_score, away_score, outcome, points_earned, predicted_penalty_winner")
       .eq("user_id", user.id),
   ]);
 

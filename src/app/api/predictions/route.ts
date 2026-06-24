@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   const { data } = await supabase
     .from("predictions")
-    .select("id, match_id, home_score, away_score, outcome, points_earned")
+    .select("id, match_id, home_score, away_score, outcome, points_earned, predicted_penalty_winner")
     .eq("user_id", user.id);
 
   const map: PredictionsMap = {};
@@ -24,9 +24,10 @@ export async function GET(request: Request) {
 }
 
 const schema = z.object({
-  match_id:   z.number().int().positive(),
-  home_score: z.number().int().min(0).max(20),
-  away_score: z.number().int().min(0).max(20),
+  match_id:                  z.number().int().positive(),
+  home_score:                z.number().int().min(0).max(20),
+  away_score:                z.number().int().min(0).max(20),
+  predicted_penalty_winner:  z.enum(["home", "away"]).nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
 
   const { data: match, error: matchError } = await supabase
     .from("matches")
-    .select("id, status, scheduled_at")
+    .select("id, status, scheduled_at, phase")
     .eq("id", match_id)
     .single();
 
@@ -87,13 +88,27 @@ export async function POST(request: Request) {
     );
   }
 
+  const { predicted_penalty_winner } = parsed.data;
+  const isKnockout = match.phase !== "group";
+  const isDraw = home_score === away_score;
+
+  if (isKnockout && isDraw && !predicted_penalty_winner) {
+    return NextResponse.json(
+      { error: "En eliminatorias, un empate requiere indicar el ganador en penales." },
+      { status: 422 }
+    );
+  }
+
+  // Si el score no es empate, ignorar el campo de penales aunque venga en el body
+  const penaltyWinner = isDraw ? (predicted_penalty_winner ?? null) : null;
+
   // Try INSERT first. On unique conflict (user already predicted this match), fall back to UPDATE.
   // Cannot use upsert: ON CONFLICT DO UPDATE SET would include user_id/match_id which are not
   // in the column-level UPDATE grant (only home_score, away_score are allowed).
   // updated_at is set server-side by trg_predictions_updated_at (migration 012).
   const { data: inserted, error: insertError } = await supabase
     .from("predictions")
-    .insert({ user_id: user.id, match_id, home_score, away_score })
+    .insert({ user_id: user.id, match_id, home_score, away_score, predicted_penalty_winner: penaltyWinner })
     .select()
     .single();
 
@@ -103,7 +118,7 @@ export async function POST(request: Request) {
   if (insertError?.code === "23505") {
     const { data: updated, error: updateError } = await supabase
       .from("predictions")
-      .update({ home_score, away_score })
+      .update({ home_score, away_score, predicted_penalty_winner: penaltyWinner })
       .eq("user_id", user.id)
       .eq("match_id", match_id)
       .select()

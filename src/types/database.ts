@@ -133,11 +133,14 @@ export type Database = {
       matches: {
         Row: {
           away_score: number | null
+          away_slot: string | null
           away_team_id: number | null
           home_score: number | null
+          home_slot: string | null
           home_team_id: number | null
           id: number
           match_number: number
+          penalty_winner: string | null
           phase: Database["public"]["Enums"]["match_phase"]
           result_source: string | null
           result_updated_at: string | null
@@ -147,11 +150,14 @@ export type Database = {
         }
         Insert: {
           away_score?: number | null
+          away_slot?: string | null
           away_team_id?: number | null
           home_score?: number | null
+          home_slot?: string | null
           home_team_id?: number | null
           id?: number
           match_number: number
+          penalty_winner?: string | null
           phase: Database["public"]["Enums"]["match_phase"]
           result_source?: string | null
           result_updated_at?: string | null
@@ -161,11 +167,14 @@ export type Database = {
         }
         Update: {
           away_score?: number | null
+          away_slot?: string | null
           away_team_id?: number | null
           home_score?: number | null
+          home_slot?: string | null
           home_team_id?: number | null
           id?: number
           match_number?: number
+          penalty_winner?: string | null
           phase?: Database["public"]["Enums"]["match_phase"]
           result_source?: string | null
           result_updated_at?: string | null
@@ -199,6 +208,7 @@ export type Database = {
           match_id: number
           outcome: Database["public"]["Enums"]["prediction_outcome"]
           points_earned: number
+          predicted_penalty_winner: string | null
           updated_at: string
           user_id: string
         }
@@ -210,6 +220,7 @@ export type Database = {
           match_id: number
           outcome?: Database["public"]["Enums"]["prediction_outcome"]
           points_earned?: number
+          predicted_penalty_winner?: string | null
           updated_at?: string
           user_id: string
         }
@@ -221,6 +232,7 @@ export type Database = {
           match_id?: number
           outcome?: Database["public"]["Enums"]["prediction_outcome"]
           points_earned?: number
+          predicted_penalty_winner?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -416,6 +428,7 @@ export type Database = {
       match_phase:
         | "group"
         | "round_of_16"
+        | "round_of_8"
         | "quarterfinal"
         | "semifinal"
         | "third_place"
@@ -552,6 +565,7 @@ export const Constants = {
       match_phase: [
         "group",
         "round_of_16",
+        "round_of_8",
         "quarterfinal",
         "semifinal",
         "third_place",
