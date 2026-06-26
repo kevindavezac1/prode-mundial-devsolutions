@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { BracketView } from "@/components/bracket/BracketView";
 import type { MatchWithTeams } from "@/types/matches";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Llaves — Prode Mundial 2026" };
 
 export default async function BracketPage() {
