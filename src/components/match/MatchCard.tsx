@@ -24,6 +24,7 @@ export type MatchCardMatch = {
   away_team: Team | null;
   home_score: number | null;
   away_score: number | null;
+  penalty_winner?: "home" | "away" | null;
   home_slot?: string | null;
   away_slot?: string | null;
   group_name?: string | null;
@@ -167,6 +168,20 @@ function PhaseBadge({ phase, groupName }: { phase?: string; groupName?: string |
 
 // ─── Score display ────────────────────────────────────────────────────────────
 
+function PenaltyWinnerLabel({ match }: { match: MatchCardMatch }) {
+  const { penalty_winner, home_team, away_team } = match;
+  if (!penalty_winner) return null;
+  const winner = penalty_winner === "home" ? (home_team?.code ?? "LOC") : (away_team?.code ?? "VIS");
+  return (
+    <span
+      style={{ letterSpacing: "1.5px" }}
+      className="text-[9px] font-bold text-wc-gold/70 mt-1"
+    >
+      {winner} P.P.
+    </span>
+  );
+}
+
 function ScoreCenter({
   state,
   match,
@@ -218,32 +233,52 @@ function ScoreCenter({
   }
 
   // live or finished — show real score
-  const home = state === "live" ? match.home_score : match.home_score;
-  const away = state === "live" ? match.away_score : match.away_score;
+  const home = match.home_score;
+  const away = match.away_score;
 
   return (
-    <div className="flex items-center gap-1 px-2">
-      <span
-        className={scoreClass}
-        style={
-          state === "live"
-            ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
-            : undefined
-        }
-      >
-        {home ?? "–"}
-      </span>
-      <span className="font-display text-[20px] text-white/15 leading-none mb-1">:</span>
-      <span
-        className={scoreClass}
-        style={
-          state === "live"
-            ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
-            : undefined
-        }
-      >
-        {away ?? "–"}
-      </span>
+    <div className="flex flex-col items-center gap-0 px-2">
+      <div className="flex items-center gap-1">
+        <span
+          className={scoreClass}
+          style={
+            state === "live"
+              ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
+              : undefined
+          }
+        >
+          {home ?? "–"}
+        </span>
+        <span className="font-display text-[20px] text-white/15 leading-none mb-1">:</span>
+        <span
+          className={scoreClass}
+          style={
+            state === "live"
+              ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
+              : undefined
+          }
+        >
+          {away ?? "–"}
+        </span>
+      </div>
+      {state === "finished" && <PenaltyWinnerLabel match={match} />}
+      {state === "finished" && match.penalty_winner && (
+        userPrediction?.predicted_penalty_winner === match.penalty_winner ? (
+          <span
+            style={{ letterSpacing: "0.5px" }}
+            className="text-[9px] text-green-400/60 mt-0.5 text-center"
+          >
+            ✓ Acertaste los penales
+          </span>
+        ) : (
+          <span
+            style={{ letterSpacing: "0.5px" }}
+            className="text-[9px] text-red-400/50 mt-0.5 text-center"
+          >
+            No acertaste los penales
+          </span>
+        )
+      )}
     </div>
   );
 }
@@ -295,11 +330,13 @@ function CardFooter({
   userPrediction,
   onPredictClick,
   matchId,
+  match,
 }: {
   state: MatchVisualState;
   userPrediction: MatchCardPrediction;
   onPredictClick?: (matchId: number) => void;
   matchId: number;
+  match: MatchCardMatch;
 }) {
   const dividerClass = "mt-3 pt-3 border-t border-white/6";
 
@@ -331,10 +368,19 @@ function CardFooter({
   }
 
   if (state === "upcoming-predicted") {
+    const { home_score, away_score, predicted_penalty_winner } = userPrediction!;
+    const penTeam = predicted_penalty_winner === "home"
+      ? (match.home_team?.code ?? "Local")
+      : predicted_penalty_winner === "away"
+      ? (match.away_team?.code ?? "Visitante")
+      : null;
+    const predStr = penTeam
+      ? `${home_score}–${away_score} · ${penTeam} gana penales`
+      : `${home_score}–${away_score}`;
     return (
       <div className={dividerClass}>
         <p className="text-[10px] text-white/40 text-center" style={{ letterSpacing: "0.5px" }}>
-          Tu predicción enviada · tappeá para editar
+          Tu pred: <span className="text-white/65 font-bold">{predStr}</span> · tappeá para editar
         </p>
         <p className="text-[9px] text-white/25 text-center mt-0.5">
           Podés cambiarla hasta 5 min antes del partido
@@ -344,10 +390,19 @@ function CardFooter({
   }
 
   if (state === "locked-predicted") {
+    const { home_score, away_score, predicted_penalty_winner } = userPrediction!;
+    const penTeam = predicted_penalty_winner === "home"
+      ? (match.home_team?.code ?? "Local")
+      : predicted_penalty_winner === "away"
+      ? (match.away_team?.code ?? "Visitante")
+      : null;
+    const predStr = penTeam
+      ? `${home_score}–${away_score} · ${penTeam} gana penales`
+      : `${home_score}–${away_score}`;
     return (
       <div className={dividerClass}>
         <p className="text-[10px] text-white/50 text-center font-semibold" style={{ letterSpacing: "0.5px" }}>
-          🔒 Predicción enviada
+          🔒 Tu pred: <span className="text-white/70">{predStr}</span>
         </p>
       </div>
     );
@@ -536,6 +591,7 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
           userPrediction={userPrediction}
           onPredictClick={onPredictClick}
           matchId={match.id}
+          match={match}
         />
       </div>
     </div>

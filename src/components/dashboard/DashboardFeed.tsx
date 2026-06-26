@@ -232,13 +232,14 @@ export function DashboardFeed({ displayName }: Props) {
     return list.map((m) => (
       <MatchCard
         key={m.id}
-        match={m}
+        match={{ ...m, penalty_winner: (m.penalty_winner as "home" | "away" | null | undefined) }}
         userPrediction={
           m.userPrediction
             ? {
                 home_score: m.userPrediction.home_score,
                 away_score: m.userPrediction.away_score,
                 points_earned: m.userPrediction.points_earned ?? null,
+                predicted_penalty_winner: m.userPrediction.predicted_penalty_winner ?? null,
               }
             : null
         }
