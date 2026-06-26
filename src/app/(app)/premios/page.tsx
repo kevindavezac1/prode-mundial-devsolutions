@@ -199,14 +199,13 @@ export default async function PremiosPage() {
 
         <PrizeCard fase="Argentina — Partido 1" condicion="Sorteo entre exactos" premio="TURNO DE PÁDEL" sponsor="Hay Equipo Premier Club" sponsorKey="hay-equipo" border="rgba(116,172,223,0.25)" />
         <PrizeCard fase="Argentina — Partido 2" condicion="Sorteo entre exactos" premio="DOCENA DE MEDIALUNAS" sponsor="El Club de las Medialunas" sponsorKey="el-club-medialunas" border="rgba(116,172,223,0.25)" />
-        <PrizeCard fase="Argentina — Partido 3" condicion="Sorteo entre exactos" premio="CORTE DE PELO" sponsor="El Pasillo Barber" sponsorKey="el-pasillo-barber" border="rgba(116,172,223,0.25)" />
+        <PrizeCard fase="Argentina — Partido 3" condicion="Sorteo entre exactos" premio="2 CORTES DE PELO" sponsor="El Pasillo Barber" sponsorKey="el-pasillo-barber" border="rgba(116,172,223,0.25)" />
 
         {/* Partidos de Nueva Zelanda */}
         <Divider label="PARTIDOS DE NUEVA ZELANDA" />
 
         <PrizeCard fase="Nueva Zelanda — Partido 1" condicion="Sorteo entre exactos" premio="SESIÓN DE CENTRO DE BELLEZA" sponsor="La Prose" sponsorKey="la-prose" border="rgba(116,172,223,0.25)" tagline="Por Tim Pyne 🫡" />
         <PrizeCard fase="Nueva Zelanda — Partido 2" condicion="Sorteo entre exactos" premio="LÁMPARA DE ESTUDIO" sponsor="AF Electricidad" sponsorKey="af-electricidad" border="rgba(116,172,223,0.25)" />
-        <PrizeCard fase="Nueva Zelanda — Partido 3" condicion="Sorteo entre exactos" premio="CORTE DE PELO" sponsor="El Pasillo Barber" sponsorKey="el-pasillo-barber" border="rgba(116,172,223,0.25)" />
 
         {/* Fase de Grupos */}
         <Divider label="FASE DE GRUPOS" />
