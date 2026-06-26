@@ -1,61 +1,103 @@
 "use client";
 
+import { useState } from "react";
 import { FlagEmoji } from "@/components/match/FlagEmoji";
 import type { MatchWithTeams } from "@/types/matches";
 
-// ─── Winner helper ─────────────────────────────────────────────────────────
+// ─── Layout constants ─────────────────────────────────────────────────────────
 
-function winner(m: MatchWithTeams): "home" | "away" | null {
+const CARD_H  = 46;              // px — height of each compact match card
+const SLOT    = 58;              // px — vertical spacing per R16 slot
+const MID_GAP = 16;             // px — visual break between top-4 and bottom-4 R16
+const TOTAL_H = SLOT * 8 + MID_GAP; // 480px — full column height
+const CONN_W  = 11;             // px — width of connector columns
+const LINE    = "rgba(255,255,255,0.11)";
+
+// Vertical position helpers (all px, relative to column top)
+function r16Top(i: number) { return i * SLOT + (i >= 4 ? MID_GAP : 0); }
+function r16C(i: number)   { return r16Top(i) + CARD_H / 2; }
+function r8Top(i: number)  { return (r16C(i * 2) + r16C(i * 2 + 1)) / 2 - CARD_H / 2; }
+function r8C(i: number)    { return r8Top(i) + CARD_H / 2; }
+function qfTop(i: number)  { return (r8C(i * 2) + r8C(i * 2 + 1)) / 2 - CARD_H / 2; }
+function qfC(i: number)    { return qfTop(i) + CARD_H / 2; }
+const SF_TOP = (qfC(0) + qfC(1)) / 2 - CARD_H / 2;
+const SF_C   = SF_TOP + CARD_H / 2;
+
+// ─── Winner helper ────────────────────────────────────────────────────────────
+
+function matchWinner(m: MatchWithTeams): "home" | "away" | null {
   if (m.status !== "finished") return null;
   if (m.home_score === null || m.away_score === null) return null;
-  if (m.penalty_winner === "home" || m.penalty_winner === "away") return m.penalty_winner;
+  if (m.penalty_winner === "home") return "home";
+  if (m.penalty_winner === "away") return "away";
   if (m.home_score > m.away_score) return "home";
   if (m.away_score > m.home_score) return "away";
   return null;
 }
 
-// ─── Team row (compact) ────────────────────────────────────────────────────
+// ─── Compact team row ─────────────────────────────────────────────────────────
 
 type Team = MatchWithTeams["home_team"];
 
-function TeamRow({
-  team, slot, score, isWinner,
-}: {
-  team: Team; slot?: string | null; score: number | null; isWinner: boolean;
+function abbreviateSlot(slot: string): string {
+  const m = slot.match(/^(\d+)\D+([A-Z])$/i); // "1ro Grupo A" → "1A"
+  if (m) return `${m[1]}${m[2].toUpperCase()}`;
+  if (/mejor/i.test(slot)) return "M3";
+  return slot.slice(0, 3);
+}
+
+function TeamRow({ team, slot, score, isWinner, phase }: {
+  team: Team;
+  slot?: string | null;
+  score: number | null;
+  isWinner: boolean;
+  phase: string;
 }) {
+  const label = team
+    ? team.code
+    : slot && phase === "round_of_16"
+      ? abbreviateSlot(slot)
+      : "?";
+
   return (
     <div
-      className="flex items-center justify-between px-2 py-[5px]"
-      style={{ background: isWinner ? "rgba(228,0,43,0.08)" : "transparent" }}
+      className="flex items-center justify-between px-[6px] flex-1 min-w-0"
+      style={{ background: isWinner ? "rgba(228,0,43,0.09)" : "transparent" }}
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-[4px] min-w-0">
         <div
-          className="w-[18px] h-[18px] rounded-full overflow-hidden flex items-center justify-center shrink-0"
-          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+          className="shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+          style={{
+            width: 13, height: 13,
+            background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.09)",
+          }}
         >
           {team ? (
             <FlagEmoji code={team.code} flagUrl={team.flag_url}
               className="w-full h-full object-cover" alt={team.name} />
           ) : (
-            <span className="text-[7px] font-bold" style={{ color: "rgba(255,255,255,0.2)" }}>?</span>
+            <span className="text-[5px] font-bold" style={{ color: "rgba(255,255,255,0.15)" }}>?</span>
           )}
         </div>
         <span
-          className="text-[10px] font-extrabold"
+          className="text-[8px] font-extrabold truncate"
           style={{
-            letterSpacing: "1.2px",
-            color: isWinner ? "#E4002B" : team ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.2)",
+            letterSpacing: "0.6px",
+            color: isWinner ? "#E4002B"
+              : team ? "rgba(255,255,255,0.72)"
+              : "rgba(255,255,255,0.18)",
           }}
         >
-          {team ? team.code : (slot ?? "TBD")}
+          {label}
         </span>
       </div>
       <span
-        className="text-[12px] font-bold tabular-nums"
+        className="text-[11px] font-bold tabular-nums shrink-0 ml-1"
         style={{
           color: isWinner ? "white"
-            : score !== null ? "rgba(255,255,255,0.55)"
-            : "rgba(255,255,255,0.15)",
+            : score !== null ? "rgba(255,255,255,0.5)"
+            : "rgba(255,255,255,0.11)",
         }}
       >
         {score !== null ? score : "–"}
@@ -64,158 +106,259 @@ function TeamRow({
   );
 }
 
-// ─── Compact bracket card ──────────────────────────────────────────────────
+// ─── Compact bracket card (absolutely positioned) ──────────────────────────────
 
-function BracketCard({ match }: { match: MatchWithTeams }) {
-  const w = winner(match);
+function BCard({ match, top, phase }: { match: MatchWithTeams | undefined; top: number; phase: string }) {
+  const w = match ? matchWinner(match) : null;
   return (
     <div
-      className="rounded-lg overflow-hidden"
       style={{
+        position: "absolute",
+        top,
+        left: 0,
+        right: 0,
+        height: CARD_H,
+        borderRadius: 6,
+        overflow: "hidden",
         background: "linear-gradient(150deg, #0d1120 0%, #07090f 100%)",
-        border: match.status === "live"
-          ? "1px solid rgba(228,0,43,0.35)"
-          : "1px solid rgba(255,255,255,0.08)",
+        border: `1px solid ${match?.status === "live" ? "rgba(228,0,43,0.45)" : LINE}`,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <TeamRow team={match.home_team} slot={match.home_slot}
-        score={match.home_score} isWinner={w === "home"} />
-      <div style={{ height: 1, background: "rgba(255,255,255,0.055)" }} />
-      <TeamRow team={match.away_team} slot={match.away_slot}
-        score={match.away_score} isWinner={w === "away"} />
-    </div>
-  );
-}
-
-// ─── Pair of cards + bracket connector arm ─────────────────────────────────
-
-function BracketPair({
-  matches, connectorSide,
-}: {
-  matches: [MatchWithTeams, MatchWithTeams]; connectorSide: "right" | "left";
-}) {
-  const arm = (
-    <div className="w-3 self-stretch flex-shrink-0" style={{ position: "relative" }}>
-      <div
-        style={{
-          position: "absolute",
-          top: "22%", bottom: "22%",
-          ...(connectorSide === "right"
-            ? {
-                left: 0, right: "auto",
-                borderTop: "1px solid rgba(255,255,255,0.13)",
-                borderRight: "1px solid rgba(255,255,255,0.13)",
-                borderBottom: "1px solid rgba(255,255,255,0.13)",
-              }
-            : {
-                right: 0, left: "auto",
-                borderTop: "1px solid rgba(255,255,255,0.13)",
-                borderLeft: "1px solid rgba(255,255,255,0.13)",
-                borderBottom: "1px solid rgba(255,255,255,0.13)",
-              }),
-          width: "100%",
-        }}
+      <TeamRow
+        team={match?.home_team ?? null}
+        slot={match?.home_slot}
+        score={match?.home_score ?? null}
+        isWinner={w === "home"}
+        phase={phase}
+      />
+      <div style={{ height: 1, background: "rgba(255,255,255,0.04)", flexShrink: 0 }} />
+      <TeamRow
+        team={match?.away_team ?? null}
+        slot={match?.away_slot}
+        score={match?.away_score ?? null}
+        isWinner={w === "away"}
+        phase={phase}
       />
     </div>
   );
+}
 
+// ─── Connector column ─────────────────────────────────────────────────────────
+
+type ConnLine = { top: number; height: number; isVertical: boolean };
+
+function ConnectorCol({ lines, mirrored }: { lines: ConnLine[]; mirrored?: boolean }) {
   return (
-    <div className="flex gap-0">
-      {connectorSide === "left" && arm}
-      <div className="flex-1 flex flex-col gap-1.5">
-        <BracketCard match={matches[0]} />
-        <BracketCard match={matches[1]} />
-      </div>
-      {connectorSide === "right" && arm}
+    <div style={{ position: "relative", height: TOTAL_H, width: CONN_W, flexShrink: 0 }}>
+      {lines.map((l, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: l.top,
+            left: l.isVertical ? (mirrored ? "auto" : 0) : 0,
+            right: l.isVertical ? (mirrored ? 0 : "auto") : 0,
+            width: l.isVertical ? 1 : "100%",
+            height: l.isVertical ? l.height : 1,
+            background: LINE,
+          }}
+        />
+      ))}
     </div>
   );
 }
 
-// ─── Round section ─────────────────────────────────────────────────────────
+// ─── Round column ─────────────────────────────────────────────────────────────
 
-const ROUND_LABELS: Record<string, string> = {
-  round_of_16:  "16AVOS",
-  round_of_8:   "8VOS",
-  quarterfinal: "CUARTOS",
-  semifinal:    "SEMIS",
-};
+function RoundCol({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ position: "relative", height: TOTAL_H, flex: 1, minWidth: 0 }}>
+      {children}
+    </div>
+  );
+}
 
-function RoundSection({
-  phase, matches, connectorSide,
-}: {
-  phase: string; matches: MatchWithTeams[]; connectorSide: "right" | "left";
+// ─── Half bracket ─────────────────────────────────────────────────────────────
+
+function HalfBracket({ r16, r8, qf, sf, reversed }: {
+  r16: MatchWithTeams[];
+  r8:  MatchWithTeams[];
+  qf:  MatchWithTeams[];
+  sf:  MatchWithTeams | undefined;
+  reversed?: boolean;
 }) {
-  if (matches.length === 0) return null;
-  const label = ROUND_LABELS[phase] ?? phase.toUpperCase();
+  const pad = (arr: MatchWithTeams[], len: number): (MatchWithTeams | undefined)[] =>
+    Array.from({ length: len }, (_, i) => arr[i]);
 
-  const pairs: [MatchWithTeams, MatchWithTeams][] = [];
-  for (let i = 0; i + 1 < matches.length; i += 2) {
-    pairs.push([matches[i], matches[i + 1]]);
+  // R16 → R8 connectors
+  const r16r8: ConnLine[] = [];
+  for (let i = 0; i < 4; i++) {
+    r16r8.push({ top: r16C(i * 2), height: r16C(i * 2 + 1) - r16C(i * 2), isVertical: true });
+    r16r8.push({ top: r8C(i), height: 1, isVertical: false });
   }
-  const lone = matches.length % 2 !== 0 ? matches[matches.length - 1] : null;
+
+  // R8 → QF connectors
+  const r8qf: ConnLine[] = [];
+  for (let i = 0; i < 2; i++) {
+    r8qf.push({ top: r8C(i * 2), height: r8C(i * 2 + 1) - r8C(i * 2), isVertical: true });
+    r8qf.push({ top: qfC(i), height: 1, isVertical: false });
+  }
+
+  // QF → SF connectors
+  const qfsf: ConnLine[] = [
+    { top: qfC(0), height: qfC(1) - qfC(0), isVertical: true },
+    { top: SF_C, height: 1, isVertical: false },
+  ];
+
+  if (reversed) {
+    return (
+      <div style={{ display: "flex" }}>
+        <RoundCol>
+          <BCard match={sf} top={SF_TOP} phase="semifinal" />
+        </RoundCol>
+        <ConnectorCol lines={qfsf} mirrored />
+        <RoundCol>
+          {pad(qf, 2).map((m, i) => <BCard key={i} match={m} top={qfTop(i)} phase="quarterfinal" />)}
+        </RoundCol>
+        <ConnectorCol lines={r8qf} mirrored />
+        <RoundCol>
+          {pad(r8, 4).map((m, i) => <BCard key={i} match={m} top={r8Top(i)} phase="round_of_8" />)}
+        </RoundCol>
+        <ConnectorCol lines={r16r8} mirrored />
+        <RoundCol>
+          {pad(r16, 8).map((m, i) => <BCard key={i} match={m} top={r16Top(i)} phase="round_of_16" />)}
+        </RoundCol>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex items-center gap-3 my-4">
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-        <span
-          className="text-[8px] font-bold"
-          style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "2.5px" }}
-        >
-          {label}
-        </span>
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-      </div>
-
-      <div className="space-y-4">
-        {pairs.map((pair, i) => (
-          <BracketPair key={i} matches={pair} connectorSide={connectorSide} />
-        ))}
-        {lone && <BracketCard match={lone} />}
-      </div>
+    <div style={{ display: "flex" }}>
+      <RoundCol>
+        {pad(r16, 8).map((m, i) => <BCard key={i} match={m} top={r16Top(i)} phase="round_of_16" />)}
+      </RoundCol>
+      <ConnectorCol lines={r16r8} />
+      <RoundCol>
+        {pad(r8, 4).map((m, i) => <BCard key={i} match={m} top={r8Top(i)} phase="round_of_8" />)}
+      </RoundCol>
+      <ConnectorCol lines={r8qf} />
+      <RoundCol>
+        {pad(qf, 2).map((m, i) => <BCard key={i} match={m} top={qfTop(i)} phase="quarterfinal" />)}
+      </RoundCol>
+      <ConnectorCol lines={qfsf} />
+      <RoundCol>
+        <BCard match={sf} top={SF_TOP} phase="semifinal" />
+      </RoundCol>
     </div>
   );
 }
 
-// ─── Final (prominent) ────────────────────────────────────────────────────
+// ─── Side toggle ──────────────────────────────────────────────────────────────
 
-function FinalTeamRow({
-  team, slot, score, isWinner,
-}: {
+function SideToggle({ side, onChange }: {
+  side: "A" | "B";
+  onChange: (s: "A" | "B") => void;
+}) {
+  return (
+    <div
+      className="flex gap-1 p-1 rounded-xl mb-4"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      {(["A", "B"] as const).map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange(s)}
+          className="flex-1 py-2 rounded-lg text-[11px] font-extrabold transition-all active:scale-95"
+          style={{
+            letterSpacing: "2px",
+            background: side === s
+              ? "linear-gradient(135deg, #E4002B 0%, #B8001F 100%)"
+              : "transparent",
+            color: side === s ? "white" : "rgba(255,255,255,0.3)",
+            boxShadow: side === s ? "0 2px 8px rgba(228,0,43,0.25)" : "none",
+          }}
+        >
+          LADO {s}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Column labels ────────────────────────────────────────────────────────────
+
+function ColLabels({ reversed }: { reversed?: boolean }) {
+  const COL_LABELS = reversed
+    ? (["SEMIS", "CUARTOS", "8VOS", "16AVOS"] as const)
+    : (["16AVOS", "8VOS", "CUARTOS", "SEMIS"] as const);
+  return (
+    <div style={{ display: "flex", marginBottom: 6 }}>
+      {COL_LABELS.map((label, i) => (
+        <div key={label} style={{ display: "contents" }}>
+          {i > 0 && <div style={{ width: CONN_W, flexShrink: 0 }} />}
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <span
+              className="text-[7px] font-bold"
+              style={{ color: "rgba(255,255,255,0.18)", letterSpacing: "1.5px" }}
+            >
+              {label}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Special match card (Final / 3er puesto) ──────────────────────────────────
+
+function SpecialTeamRow({ team, slot, score, isWinner }: {
   team: Team; slot?: string | null; score: number | null; isWinner: boolean;
 }) {
   return (
     <div
-      className="flex items-center justify-between px-5 py-4"
-      style={{ background: isWinner ? "rgba(228,0,43,0.1)" : "transparent" }}
+      className="flex items-center justify-between px-4 py-3"
+      style={{ background: isWinner ? "rgba(228,0,43,0.09)" : "transparent" }}
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center shrink-0"
-          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+          className="rounded-full overflow-hidden flex items-center justify-center shrink-0"
+          style={{
+            width: 30, height: 30,
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
         >
           {team ? (
             <FlagEmoji code={team.code} flagUrl={team.flag_url}
               className="w-full h-full object-cover" alt={team.name} />
           ) : (
-            <span className="text-xl" style={{ color: "rgba(255,255,255,0.2)" }}>?</span>
+            <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 13 }}>?</span>
           )}
         </div>
         <span
-          className="text-base font-extrabold"
+          className="font-extrabold text-sm"
           style={{
-            letterSpacing: "2px",
-            color: isWinner ? "#E4002B" : team ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)",
+            letterSpacing: "1.5px",
+            color: isWinner ? "#E4002B"
+              : team ? "rgba(255,255,255,0.82)"
+              : "rgba(255,255,255,0.2)",
           }}
         >
-          {team ? team.code : (slot ?? "TBD")}
+          {team ? team.name : (slot ?? "POR DEFINIR")}
         </span>
       </div>
       <span
-        className="text-3xl font-bold tabular-nums"
+        className="font-bold text-xl tabular-nums"
         style={{
           color: isWinner ? "white"
-            : score !== null ? "rgba(255,255,255,0.6)"
+            : score !== null ? "rgba(255,255,255,0.55)"
             : "rgba(255,255,255,0.12)",
         }}
       >
@@ -225,45 +368,47 @@ function FinalTeamRow({
   );
 }
 
-function FinalSection({ match }: { match: MatchWithTeams | undefined }) {
-  const w = match ? winner(match) : null;
-
+function SpecialMatch({ match, label, accentRgb }: {
+  match: MatchWithTeams | undefined;
+  label: string;
+  accentRgb: string;
+}) {
+  const w = match ? matchWinner(match) : null;
   return (
-    <div className="my-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 h-px" style={{ background: "rgba(228,0,43,0.18)" }} />
-        <span style={{ fontSize: 18 }}>🏆</span>
+    <div className="mt-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex-1 h-px" style={{ background: `rgba(${accentRgb},0.18)` }} />
         <span
           className="text-[9px] font-extrabold"
-          style={{ color: "rgba(228,0,43,0.65)", letterSpacing: "3px" }}
+          style={{ color: `rgba(${accentRgb},0.65)`, letterSpacing: "2.5px" }}
         >
-          FINAL
+          {label}
         </span>
-        <span style={{ fontSize: 18 }}>🏆</span>
-        <div className="flex-1 h-px" style={{ background: "rgba(228,0,43,0.18)" }} />
+        <div className="flex-1 h-px" style={{ background: `rgba(${accentRgb},0.18)` }} />
       </div>
-
       {match ? (
         <div
           className="rounded-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(150deg, #1a0610 0%, #0d0d1a 50%, #07090f 100%)",
-            border: "1px solid rgba(228,0,43,0.22)",
-            boxShadow: "0 0 28px rgba(228,0,43,0.07)",
+            background: "linear-gradient(150deg, #0d1120 0%, #07090f 100%)",
+            border: `1px solid rgba(${accentRgb},0.22)`,
           }}
         >
-          <FinalTeamRow team={match.home_team} slot={match.home_slot}
+          <SpecialTeamRow team={match.home_team} slot={match.home_slot}
             score={match.home_score} isWinner={w === "home"} />
-          <div style={{ height: 1, background: "rgba(228,0,43,0.12)" }} />
-          <FinalTeamRow team={match.away_team} slot={match.away_slot}
+          <div style={{ height: 1, background: `rgba(${accentRgb},0.1)` }} />
+          <SpecialTeamRow team={match.away_team} slot={match.away_slot}
             score={match.away_score} isWinner={w === "away"} />
         </div>
       ) : (
         <div
-          className="rounded-2xl py-10 text-center"
-          style={{ background: "rgba(228,0,43,0.04)", border: "1px solid rgba(228,0,43,0.1)" }}
+          className="rounded-2xl py-5 text-center"
+          style={{
+            background: `rgba(${accentRgb},0.03)`,
+            border: `1px solid rgba(${accentRgb},0.1)`,
+          }}
         >
-          <p className="text-sm font-bold" style={{ color: "rgba(228,0,43,0.35)", letterSpacing: "2px" }}>
+          <p className="text-xs font-bold" style={{ color: `rgba(${accentRgb},0.3)`, letterSpacing: "2px" }}>
             POR DEFINIR
           </p>
         </div>
@@ -272,7 +417,7 @@ function FinalSection({ match }: { match: MatchWithTeams | undefined }) {
   );
 }
 
-// ─── Empty state ───────────────────────────────────────────────────────────
+// ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState() {
   return (
@@ -288,38 +433,56 @@ function EmptyState() {
   );
 }
 
-// ─── Main ──────────────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function BracketView({ matches }: { matches: MatchWithTeams[] }) {
-  if (matches.length === 0) return <div className="px-4 pt-4 pb-8"><EmptyState /></div>;
+  const [side, setSide] = useState<"A" | "B">("A");
 
   const by = (phase: string) =>
     matches.filter((m) => m.phase === phase).sort((a, b) => a.match_number - b.match_number);
 
-  const r16 = by("round_of_16");
-  const r8  = by("round_of_8");
-  const qf  = by("quarterfinal");
-  const sf  = by("semifinal");
-  const fin = by("final");
+  const r16All = by("round_of_16");
+
+  if (r16All.length === 0) {
+    return <div className="px-4 pt-4 pb-8"><EmptyState /></div>;
+  }
+
+  const r8All  = by("round_of_8");
+  const qfAll  = by("quarterfinal");
+  const sfAll  = by("semifinal");
+  const finAll = by("final");
+  const tpAll  = by("third_place");
 
   const h = (arr: MatchWithTeams[]) => Math.ceil(arr.length / 2);
 
+  const sideA = {
+    r16: r16All.slice(0, h(r16All)),
+    r8:  r8All.slice(0, h(r8All)),
+    qf:  qfAll.slice(0, h(qfAll)),
+    sf:  sfAll[0],
+  };
+  const sideB = {
+    r16: r16All.slice(h(r16All)),
+    r8:  r8All.slice(h(r8All)),
+    qf:  qfAll.slice(h(qfAll)),
+    sf:  sfAll[1],
+  };
+
+  const active = side === "A" ? sideA : sideB;
+
   return (
-    <div className="px-4 pt-2 pb-8">
-      {/* ── Top half (outside → Final) ─────── */}
-      <RoundSection phase="round_of_16" matches={r16.slice(0, h(r16))} connectorSide="right" />
-      <RoundSection phase="round_of_8"  matches={r8.slice(0, h(r8))}   connectorSide="right" />
-      <RoundSection phase="quarterfinal" matches={qf.slice(0, h(qf))}  connectorSide="right" />
-      <RoundSection phase="semifinal"   matches={sf.slice(0, 1)}        connectorSide="right" />
-
-      {/* ── Final ──────────────────────────── */}
-      <FinalSection match={fin[0]} />
-
-      {/* ── Bottom half (Final → outside) ──── */}
-      <RoundSection phase="semifinal"   matches={sf.slice(1, 2)}        connectorSide="left" />
-      <RoundSection phase="quarterfinal" matches={qf.slice(h(qf))}     connectorSide="left" />
-      <RoundSection phase="round_of_8"  matches={r8.slice(h(r8))}      connectorSide="left" />
-      <RoundSection phase="round_of_16" matches={r16.slice(h(r16))}    connectorSide="left" />
+    <div className="px-4 pt-4 pb-8">
+      <SideToggle side={side} onChange={setSide} />
+      <ColLabels reversed={side === "B"} />
+      <HalfBracket
+        r16={active.r16}
+        r8={active.r8}
+        qf={active.qf}
+        sf={active.sf}
+        reversed={side === "B"}
+      />
+      <SpecialMatch match={tpAll[0]} label="3ER PUESTO" accentRgb="212,175,55" />
+      <SpecialMatch match={finAll[0]} label="🏆 FINAL 🏆" accentRgb="228,0,43" />
     </div>
   );
 }

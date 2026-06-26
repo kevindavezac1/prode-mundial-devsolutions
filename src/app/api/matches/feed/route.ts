@@ -35,6 +35,7 @@ export async function GET(request: Request) {
   ]);
 
   if (matchesResult.error) {
+    console.error("[feed] matches query error:", matchesResult.error);
     return NextResponse.json({ error: "Error cargando partidos." }, { status: 500 });
   }
 

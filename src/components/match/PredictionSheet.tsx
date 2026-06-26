@@ -65,7 +65,7 @@ function ScoreStepper({
         type="button"
         onClick={() => onChange(Math.max(0, value - 1))}
         disabled={disabled || value === 0}
-        className="w-11 h-11 rounded-full text-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-25"
+        className="w-9 h-9 rounded-full text-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-25"
         style={{
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.12)",
@@ -77,7 +77,7 @@ function ScoreStepper({
       </button>
 
       <div
-        className="w-16 h-14 rounded-xl font-display text-4xl flex items-center justify-center leading-none select-none text-white"
+        className="w-14 h-12 rounded-xl font-display text-3xl flex items-center justify-center leading-none select-none text-white"
         style={{
           background: "linear-gradient(135deg, #0d1120 0%, #07090f 100%)",
           border: "1px solid rgba(255,255,255,0.1)",
@@ -90,7 +90,7 @@ function ScoreStepper({
         type="button"
         onClick={() => onChange(Math.min(20, value + 1))}
         disabled={disabled || value === 20}
-        className="w-11 h-11 rounded-full text-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-25"
+        className="w-9 h-9 rounded-full text-xl font-bold flex items-center justify-center transition-all active:scale-95 disabled:opacity-25"
         style={{
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.12)",
@@ -177,14 +177,14 @@ export function PredictionSheet({
     <Sheet open={open} onOpenChange={(isOpen: boolean) => onOpenChange(isOpen)}>
       <SheetContent
         side="bottom"
-        className="rounded-t-2xl p-6 pb-10"
+        className="rounded-t-2xl p-4 pb-6"
         style={{
           background: "linear-gradient(180deg, #0d1120 0%, #07090f 100%)",
           borderTop: "1px solid rgba(228,0,43,0.3)",
         }}
       >
         {/* Top drag handle */}
-        <div className="flex justify-center mb-5">
+        <div className="flex justify-center mb-2">
           <div
             className="w-10 h-1 rounded-full"
             style={{ background: "rgba(255,255,255,0.15)" }}
@@ -192,7 +192,7 @@ export function PredictionSheet({
         </div>
 
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-3">
           <p
             className="font-display text-xl text-white"
             style={{ letterSpacing: "3px" }}
@@ -213,14 +213,14 @@ export function PredictionSheet({
           <>
             {/* Home team */}
             <div
-              className="flex justify-between items-center py-4"
+              className="flex justify-between items-center py-2"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
             >
               <div className="flex items-center gap-3">
                 <FlagEmoji
                   code={match.home_team.code}
                   flagUrl={match.home_team.flag_url}
-                  className="w-9 h-9 rounded-full object-cover object-center shrink-0"
+                  className="w-7 h-7 rounded-full object-cover object-center shrink-0"
                   alt={match.home_team.name}
                 />
                 <span
@@ -234,12 +234,12 @@ export function PredictionSheet({
             </div>
 
             {/* Away team */}
-            <div className="flex justify-between items-center py-4">
+            <div className="flex justify-between items-center py-2">
               <div className="flex items-center gap-3">
                 <FlagEmoji
                   code={match.away_team.code}
                   flagUrl={match.away_team.flag_url}
-                  className="w-9 h-9 rounded-full object-cover object-center shrink-0"
+                  className="w-7 h-7 rounded-full object-cover object-center shrink-0"
                   alt={match.away_team.name}
                 />
                 <span
@@ -252,21 +252,31 @@ export function PredictionSheet({
               <ScoreStepper value={awayScore} onChange={setAwayScore} disabled={submitting} />
             </div>
 
-            {/* Penalty winner selector — solo en eliminatorias con empate */}
-            {requiresPenalty && (
-              <div
-                className="mt-2 mb-1 rounded-xl p-4"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.09)",
-                }}
-              >
+            {/* Penalty winner selector — siempre visible en eliminatorias, disabled si no hay empate */}
+            {isKnockout && (
+              <>
                 <p
-                  className="text-[10px] font-bold text-center mb-3"
-                  style={{ color: "rgba(255,255,255,0.45)", letterSpacing: "1.5px" }}
+                  className="text-[10px] text-center mt-3 mb-2"
+                  style={{ color: "rgba(255,255,255,0.3)", letterSpacing: "0.8px" }}
                 >
-                  ¿QUIÉN GANA LA TANDA? +100 PTS SI ACERTÁS
+                  El resultado sigue sumando puntos. +100 pts extra si acertás los penales.
                 </p>
+                <div
+                  className="mt-1 mb-1 rounded-xl p-3"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.09)",
+                    opacity: isDraw ? 1 : 0.35,
+                    transition: "opacity 0.2s",
+                    pointerEvents: isDraw ? undefined : "none",
+                  }}
+                >
+                  <p
+                    className="text-[10px] font-bold text-center mb-2"
+                    style={{ color: "rgba(255,255,255,0.45)", letterSpacing: "1.5px" }}
+                  >
+                    ¿QUIÉN GANA EN PENALES?
+                  </p>
                 <div className="flex gap-3">
                   {(["home", "away"] as const).map((side) => {
                     const team = side === "home" ? match.home_team : match.away_team;
@@ -276,8 +286,8 @@ export function PredictionSheet({
                         key={side}
                         type="button"
                         onClick={() => setPenaltyWinner(selected ? null : side)}
-                        disabled={submitting}
-                        className="flex-1 flex flex-col items-center gap-2 py-3 rounded-xl transition-all active:scale-95"
+                        disabled={submitting || !isDraw}
+                        className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all active:scale-95"
                         style={{
                           background: selected
                             ? "rgba(116,172,223,0.15)"
@@ -290,7 +300,7 @@ export function PredictionSheet({
                         <FlagEmoji
                           code={team.code}
                           flagUrl={team.flag_url}
-                          className="w-8 h-8 rounded-full object-cover object-center"
+                          className="w-6 h-6 rounded-full object-cover object-center"
                           alt={team.name}
                         />
                         <span
@@ -306,7 +316,8 @@ export function PredictionSheet({
                     );
                   })}
                 </div>
-              </div>
+                </div>
+              </>
             )}
 
             {/* Error */}
@@ -319,7 +330,7 @@ export function PredictionSheet({
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="mt-6 w-full py-4 font-extrabold text-[11px] text-white transition-all active:scale-[0.97] disabled:opacity-50"
+              className="mt-3 w-full py-3 font-extrabold text-[11px] text-white transition-all active:scale-[0.97] disabled:opacity-50"
               style={{
                 background: "linear-gradient(135deg, #74ACDF, #4a8bc4)",
                 borderRadius: "999px",

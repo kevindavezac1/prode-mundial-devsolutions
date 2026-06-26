@@ -86,7 +86,8 @@ export async function toggleSponsorActive(
 export async function submitResult(
   matchId: number,
   homeScore: number,
-  awayScore: number
+  awayScore: number,
+  penaltyWinner?: "home" | "away" | null
 ): Promise<{ ok: true; predictions_processed: number } | { error: string }> {
   if (
     !Number.isInteger(matchId)  || matchId <= 0 ||
@@ -94,6 +95,12 @@ export async function submitResult(
     !Number.isInteger(awayScore) || awayScore < 0 || awayScore > 20
   ) {
     return { error: "Datos inválidos." };
+  }
+  if (penaltyWinner !== undefined && penaltyWinner !== null && penaltyWinner !== "home" && penaltyWinner !== "away") {
+    return { error: "Datos inválidos." };
+  }
+  if (penaltyWinner && homeScore !== awayScore) {
+    return { error: "penalty_winner solo aplica cuando hay empate." };
   }
 
   try {
@@ -104,19 +111,12 @@ export async function submitResult(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: match } = await supabase
-      .from("matches")
-      .select("home_score, away_score")
-      .eq("id", matchId)
-      .single();
-
-    if (!match) return { error: "Partido no encontrado." };
-
     const { error: updateError } = await supabase
       .from("matches")
       .update({
         home_score: homeScore,
         away_score: awayScore,
+        penalty_winner: homeScore === awayScore ? (penaltyWinner ?? null) : null,
         status: "finished",
         result_updated_at: new Date().toISOString(),
         result_source: "admin",
@@ -129,8 +129,8 @@ export async function submitResult(
       match_id: matchId,
       changed_by: adminId,
       source: "admin",
-      previous_home: match.home_score ?? null,
-      previous_away: match.away_score ?? null,
+      previous_home: null,
+      previous_away: null,
       new_home: homeScore,
       new_away: awayScore,
     });

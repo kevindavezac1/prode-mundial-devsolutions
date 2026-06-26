@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/supabase/auth";
+import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { MatchWithTeams } from "@/types/matches";
 
@@ -9,10 +9,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Demasiadas solicitudes." }, { status: 429 });
   }
 
-  const { user, supabase } = await getAuthUser(request);
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("matches")
