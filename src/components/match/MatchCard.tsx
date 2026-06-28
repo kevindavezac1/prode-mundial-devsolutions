@@ -331,16 +331,18 @@ function CardFooter({
   onPredictClick,
   matchId,
   match,
+  teamsKnown,
 }: {
   state: MatchVisualState;
   userPrediction: MatchCardPrediction;
   onPredictClick?: (matchId: number) => void;
   matchId: number;
   match: MatchCardMatch;
+  teamsKnown: boolean;
 }) {
   const dividerClass = "mt-3 pt-3 border-t border-white/6";
 
-  if (state === "upcoming-unpredicted") {
+  if (state === "upcoming-unpredicted" && teamsKnown) {
     return (
       <div className="flex justify-center mt-3">
         <button
@@ -592,6 +594,7 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
           onPredictClick={onPredictClick}
           matchId={match.id}
           match={match}
+          teamsKnown={teamsKnown}
         />
       </div>
     </div>
