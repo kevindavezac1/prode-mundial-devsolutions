@@ -342,7 +342,33 @@ function CardFooter({
 }) {
   const dividerClass = "mt-3 pt-3 border-t border-white/6";
 
-  if (state === "upcoming-unpredicted" && teamsKnown) {
+  if (state === "upcoming-unpredicted" && !teamsKnown) {
+    return (
+      <div className="flex flex-col items-center gap-1.5 mt-3">
+        <button
+          disabled
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            color: 'rgba(255,255,255,0.25)',
+            padding: '8px 28px',
+            borderRadius: '999px',
+            fontSize: '11px',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            border: 'none',
+            cursor: 'not-allowed',
+          }}
+        >
+          PREDECIR
+        </button>
+        <p className="text-[9px] text-white/25 text-center" style={{ letterSpacing: "0.3px" }}>
+          Disponible cuando se confirmen los equipos
+        </p>
+      </div>
+    );
+  }
+
+  if (state === "upcoming-unpredicted") {
     return (
       <div className="flex justify-center mt-3">
         <button
