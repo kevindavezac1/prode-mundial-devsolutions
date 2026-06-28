@@ -485,6 +485,7 @@ export function AdminPanel({ matches, sponsors }: Props) {
   const [editing, setEditing] = useState<MatchWithTeams | null>(null);
   const [homeVal, setHomeVal] = useState("");
   const [awayVal, setAwayVal] = useState("");
+  const [penaltyWinner, setPenaltyWinner] = useState<"home" | "away" | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const dates = Array.from(new Set(matches.map((m) => getMatchDate(m.scheduled_at)))).sort();
@@ -522,12 +523,14 @@ export function AdminPanel({ matches, sponsors }: Props) {
     setEditing(match);
     setHomeVal(match.home_score !== null ? String(match.home_score) : "");
     setAwayVal(match.away_score !== null ? String(match.away_score) : "");
+    setPenaltyWinner((match.penalty_winner as "home" | "away" | null) ?? null);
   }
 
   function closeModal() {
     setEditing(null);
     setHomeVal("");
     setAwayVal("");
+    setPenaltyWinner(null);
   }
 
   function handleSubmit() {
@@ -539,7 +542,7 @@ export function AdminPanel({ matches, sponsors }: Props) {
       return;
     }
     startTransition(async () => {
-      const result = await submitResult(editing.id, h, a);
+      const result = await submitResult(editing.id, h, a, h === a ? penaltyWinner : null);
       if ("error" in result) {
         toast.error(result.error);
       } else {
@@ -636,16 +639,18 @@ export function AdminPanel({ matches, sponsors }: Props) {
               <div className="flex items-center gap-2">
                 {/* Home */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <FlagEmoji
-                    code={match.home_team.code}
-                    flagUrl={match.home_team.flag_url}
-                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                    alt={match.home_team.name}
-                  />
+                  {match.home_team && (
+                    <FlagEmoji
+                      code={match.home_team.code}
+                      flagUrl={match.home_team.flag_url}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      alt={match.home_team.name}
+                    />
+                  )}
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-white">{match.home_team.code}</p>
+                    <p className="text-sm font-bold text-white">{match.home_team?.code ?? "?"}</p>
                     <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      {match.home_team.name}
+                      {match.home_team?.name ?? (match.home_slot ?? "Por definir")}
                     </p>
                   </div>
                 </div>
@@ -668,16 +673,18 @@ export function AdminPanel({ matches, sponsors }: Props) {
 
                 {/* Away */}
                 <div className="flex items-center gap-2 flex-1 min-w-0 flex-row-reverse">
-                  <FlagEmoji
-                    code={match.away_team.code}
-                    flagUrl={match.away_team.flag_url}
-                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                    alt={match.away_team.name}
-                  />
+                  {match.away_team && (
+                    <FlagEmoji
+                      code={match.away_team.code}
+                      flagUrl={match.away_team.flag_url}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      alt={match.away_team.name}
+                    />
+                  )}
                   <div className="min-w-0 text-right">
-                    <p className="text-sm font-bold text-white">{match.away_team.code}</p>
+                    <p className="text-sm font-bold text-white">{match.away_team?.code ?? "?"}</p>
                     <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      {match.away_team.name}
+                      {match.away_team?.name ?? (match.away_slot ?? "Por definir")}
                     </p>
                   </div>
                 </div>
@@ -740,14 +747,14 @@ export function AdminPanel({ matches, sponsors }: Props) {
             <div>
               <h2 className="font-bold text-base text-white">Cargar resultado</h2>
               <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {editing.home_team.name} vs {editing.away_team.name}
+                {editing.home_team?.name ?? editing.home_slot ?? "?"} vs {editing.away_team?.name ?? editing.away_slot ?? "?"}
               </p>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex-1 space-y-1">
                 <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {editing.home_team.code}
+                  {editing.home_team?.code ?? "Local"}
                 </p>
                 <input
                   type="number"
@@ -769,7 +776,7 @@ export function AdminPanel({ matches, sponsors }: Props) {
               </span>
               <div className="flex-1 space-y-1">
                 <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  {editing.away_team.code}
+                  {editing.away_team?.code ?? "Visitante"}
                 </p>
                 <input
                   type="number"
@@ -787,6 +794,52 @@ export function AdminPanel({ matches, sponsors }: Props) {
                 />
               </div>
             </div>
+
+            {/* Penalty winner — solo en knockout y cuando hay empate */}
+            {editing.phase !== "group" && (() => {
+              const h = parseInt(homeVal, 10);
+              const a = parseInt(awayVal, 10);
+              const isDraw = !isNaN(h) && !isNaN(a) && h === a;
+              return (
+                <div
+                  className="rounded-xl p-3 space-y-2"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    opacity: isDraw ? 1 : 0.35,
+                    transition: "opacity 0.2s",
+                    pointerEvents: isDraw ? undefined : "none",
+                  }}
+                >
+                  <p className="text-[10px] font-bold text-center" style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "1.5px" }}>
+                    ¿QUIÉN GANA EN PENALES?
+                  </p>
+                  <div className="flex gap-2">
+                    {(["home", "away"] as const).map((side) => {
+                      const team = side === "home" ? editing.home_team : editing.away_team;
+                      const label = team?.name ?? (side === "home" ? editing.home_slot : editing.away_slot) ?? (side === "home" ? "Local" : "Visitante");
+                      const selected = penaltyWinner === side;
+                      return (
+                        <button
+                          key={side}
+                          type="button"
+                          onClick={() => setPenaltyWinner(selected ? null : side)}
+                          disabled={isPending}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                          style={{
+                            background: selected ? "rgba(116,172,223,0.15)" : "rgba(255,255,255,0.04)",
+                            border: selected ? "1.5px solid rgba(116,172,223,0.5)" : "1.5px solid rgba(255,255,255,0.08)",
+                            color: selected ? "rgba(116,172,223,1)" : "rgba(255,255,255,0.5)",
+                          }}
+                        >
+                          {team?.code ?? label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="flex gap-2">
               <button

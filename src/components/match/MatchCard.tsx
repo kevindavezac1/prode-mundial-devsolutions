@@ -20,10 +20,13 @@ export type MatchCardMatch = {
   scheduled_at: string;
   phase?: string;
   status: "scheduled" | "live" | "finished" | "cancelled";
-  home_team: Team;
-  away_team: Team;
+  home_team: Team | null;
+  away_team: Team | null;
   home_score: number | null;
   away_score: number | null;
+  penalty_winner?: "home" | "away" | null;
+  home_slot?: string | null;
+  away_slot?: string | null;
   group_name?: string | null;
 };
 
@@ -31,6 +34,7 @@ export type MatchCardPrediction = {
   home_score: number;
   away_score: number;
   points_earned?: number | null;
+  predicted_penalty_winner?: "home" | "away" | null;
 } | null;
 
 type Props = {
@@ -128,9 +132,25 @@ function StateBadge({
   );
 }
 
-// ─── Group badge ──────────────────────────────────────────────────────────────
+// ─── Phase badge ─────────────────────────────────────────────────────────────
 
-function GroupBadge({ name }: { name: string }) {
+const PHASE_LABELS: Record<string, string> = {
+  round_of_16:  "16avos",
+  round_of_8:   "8vos",
+  quarterfinal: "Cuartos",
+  semifinal:    "Semis",
+  third_place:  "3er Puesto",
+  final:        "Final",
+};
+
+function PhaseBadge({ phase, groupName }: { phase?: string; groupName?: string | null }) {
+  let label: string | null = null;
+  if (phase === "group" && groupName) {
+    label = `Grupo ${groupName}`;
+  } else if (phase && PHASE_LABELS[phase]) {
+    label = PHASE_LABELS[phase];
+  }
+  if (!label) return null;
   return (
     <div
       style={{ border: "1px solid rgba(255,255,255,0.08)" }}
@@ -140,13 +160,27 @@ function GroupBadge({ name }: { name: string }) {
         style={{ letterSpacing: "1.5px" }}
         className="text-[9px] font-bold text-white/35"
       >
-        {name.toUpperCase()}
+        {label.toUpperCase()}
       </span>
     </div>
   );
 }
 
 // ─── Score display ────────────────────────────────────────────────────────────
+
+function PenaltyWinnerLabel({ match }: { match: MatchCardMatch }) {
+  const { penalty_winner, home_team, away_team } = match;
+  if (!penalty_winner) return null;
+  const winner = penalty_winner === "home" ? (home_team?.code ?? "LOC") : (away_team?.code ?? "VIS");
+  return (
+    <span
+      style={{ letterSpacing: "1.5px" }}
+      className="text-[9px] font-bold text-wc-gold/70 mt-1"
+    >
+      {winner} P.P.
+    </span>
+  );
+}
 
 function ScoreCenter({
   state,
@@ -199,32 +233,52 @@ function ScoreCenter({
   }
 
   // live or finished — show real score
-  const home = state === "live" ? match.home_score : match.home_score;
-  const away = state === "live" ? match.away_score : match.away_score;
+  const home = match.home_score;
+  const away = match.away_score;
 
   return (
-    <div className="flex items-center gap-1 px-2">
-      <span
-        className={scoreClass}
-        style={
-          state === "live"
-            ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
-            : undefined
-        }
-      >
-        {home ?? "–"}
-      </span>
-      <span className="font-display text-[20px] text-white/15 leading-none mb-1">:</span>
-      <span
-        className={scoreClass}
-        style={
-          state === "live"
-            ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
-            : undefined
-        }
-      >
-        {away ?? "–"}
-      </span>
+    <div className="flex flex-col items-center gap-0 px-2">
+      <div className="flex items-center gap-1">
+        <span
+          className={scoreClass}
+          style={
+            state === "live"
+              ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
+              : undefined
+          }
+        >
+          {home ?? "–"}
+        </span>
+        <span className="font-display text-[20px] text-white/15 leading-none mb-1">:</span>
+        <span
+          className={scoreClass}
+          style={
+            state === "live"
+              ? { textShadow: "0 0 28px rgba(228,0,43,0.3)" }
+              : undefined
+          }
+        >
+          {away ?? "–"}
+        </span>
+      </div>
+      {state === "finished" && <PenaltyWinnerLabel match={match} />}
+      {state === "finished" && match.penalty_winner && userPrediction?.predicted_penalty_winner != null && (
+        userPrediction.predicted_penalty_winner === match.penalty_winner ? (
+          <span
+            style={{ letterSpacing: "0.5px" }}
+            className="text-[9px] text-green-400/60 mt-0.5 text-center"
+          >
+            ✓ Acertaste los penales
+          </span>
+        ) : (
+          <span
+            style={{ letterSpacing: "0.5px" }}
+            className="text-[9px] text-red-400/50 mt-0.5 text-center"
+          >
+            No acertaste los penales
+          </span>
+        )
+      )}
     </div>
   );
 }
@@ -233,9 +287,11 @@ function ScoreCenter({
 
 function TeamColumn({
   team,
+  slot,
   finished,
 }: {
-  team: Team;
+  team: Team | null;
+  slot?: string | null;
   finished?: boolean;
 }) {
   return (
@@ -244,20 +300,24 @@ function TeamColumn({
         style={{ border: "1px solid rgba(255,255,255,0.09)" }}
         className="w-14 h-14 rounded-full bg-gradient-to-br from-white/8 to-white/2 flex items-center justify-center overflow-hidden"
       >
-        <FlagEmoji
-          code={team.code}
-          flagUrl={team.flag_url}
-          className="w-full h-full rounded-full object-cover object-center"
-          alt={team.name}
-        />
+        {team ? (
+          <FlagEmoji
+            code={team.code}
+            flagUrl={team.flag_url}
+            className="w-full h-full rounded-full object-cover object-center"
+            alt={team.name}
+          />
+        ) : (
+          <span className="text-white/20 text-xl font-bold">?</span>
+        )}
       </div>
       <span
         style={{ letterSpacing: "1.5px" }}
         className={`text-[10px] font-extrabold text-center leading-tight ${
-          finished ? "text-white/60" : "text-white/90"
+          finished ? "text-white/60" : team ? "text-white/90" : "text-white/30"
         }`}
       >
-        {team.name.toUpperCase()}
+        {team ? team.name.toUpperCase() : (slot ?? "POR DEFINIR")}
       </span>
     </div>
   );
@@ -270,13 +330,43 @@ function CardFooter({
   userPrediction,
   onPredictClick,
   matchId,
+  match,
+  teamsKnown,
 }: {
   state: MatchVisualState;
   userPrediction: MatchCardPrediction;
   onPredictClick?: (matchId: number) => void;
   matchId: number;
+  match: MatchCardMatch;
+  teamsKnown: boolean;
 }) {
   const dividerClass = "mt-3 pt-3 border-t border-white/6";
+
+  if (state === "upcoming-unpredicted" && !teamsKnown) {
+    return (
+      <div className="flex flex-col items-center gap-1.5 mt-3">
+        <button
+          disabled
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            color: 'rgba(255,255,255,0.25)',
+            padding: '8px 28px',
+            borderRadius: '999px',
+            fontSize: '11px',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            border: 'none',
+            cursor: 'not-allowed',
+          }}
+        >
+          PREDECIR
+        </button>
+        <p className="text-[9px] text-white/25 text-center" style={{ letterSpacing: "0.3px" }}>
+          Disponible cuando se confirmen los equipos
+        </p>
+      </div>
+    );
+  }
 
   if (state === "upcoming-unpredicted") {
     return (
@@ -306,10 +396,19 @@ function CardFooter({
   }
 
   if (state === "upcoming-predicted") {
+    const { home_score, away_score, predicted_penalty_winner } = userPrediction!;
+    const penTeam = predicted_penalty_winner === "home"
+      ? (match.home_team?.code ?? "Local")
+      : predicted_penalty_winner === "away"
+      ? (match.away_team?.code ?? "Visitante")
+      : null;
+    const predStr = penTeam
+      ? `${home_score}–${away_score} · ${penTeam} gana penales`
+      : `${home_score}–${away_score}`;
     return (
       <div className={dividerClass}>
         <p className="text-[10px] text-white/40 text-center" style={{ letterSpacing: "0.5px" }}>
-          Tu predicción enviada · tappeá para editar
+          Tu pred: <span className="text-white/65 font-bold">{predStr}</span> · tappeá para editar
         </p>
         <p className="text-[9px] text-white/25 text-center mt-0.5">
           Podés cambiarla hasta 5 min antes del partido
@@ -319,10 +418,19 @@ function CardFooter({
   }
 
   if (state === "locked-predicted") {
+    const { home_score, away_score, predicted_penalty_winner } = userPrediction!;
+    const penTeam = predicted_penalty_winner === "home"
+      ? (match.home_team?.code ?? "Local")
+      : predicted_penalty_winner === "away"
+      ? (match.away_team?.code ?? "Visitante")
+      : null;
+    const predStr = penTeam
+      ? `${home_score}–${away_score} · ${penTeam} gana penales`
+      : `${home_score}–${away_score}`;
     return (
       <div className={dividerClass}>
         <p className="text-[10px] text-white/50 text-center font-semibold" style={{ letterSpacing: "0.5px" }}>
-          🔒 Predicción enviada
+          🔒 Tu pred: <span className="text-white/70">{predStr}</span>
         </p>
       </div>
     );
@@ -344,7 +452,7 @@ function CardFooter({
       >
         <span className="text-[10px] text-white/40" style={{ letterSpacing: "0.5px" }}>
           {userPrediction
-            ? `TU PRED · ${userPrediction.home_score}–${userPrediction.away_score}`
+            ? `TU PRED · ${userPrediction.home_score}–${userPrediction.away_score}${userPrediction.predicted_penalty_winner != null ? " (pen)" : ""}`
             : "SIN PREDICCIÓN"}
         </span>
         <span
@@ -366,16 +474,19 @@ function CardFooter({
     );
   }
 
-  const { home_score, away_score, points_earned } = userPrediction;
-  const predStr = `${home_score}–${away_score}`;
+  const { home_score, away_score, points_earned, predicted_penalty_winner } = userPrediction;
+  const hasPenaltyPred = predicted_penalty_winner != null;
+  const predStr = hasPenaltyPred
+    ? `${home_score}–${away_score} (pen)`
+    : `${home_score}–${away_score}`;
 
-  const footerBase = (
+  return (
     <div className={`${dividerClass} flex justify-between items-center`}
       style={{ borderColor: "rgba(255,255,255,0.06)" }}>
       <span className="text-[10px] text-white/40" style={{ letterSpacing: "0.5px" }}>
         TU PRED · <span className="text-white/70 font-bold">{predStr}</span>
       </span>
-      {points_earned === 300 && (
+      {(points_earned === 400 || points_earned === 300) && (
         <div
           className="flex items-center gap-1 px-2.5 py-1 rounded"
           style={{
@@ -383,11 +494,11 @@ function CardFooter({
             border: "1px solid rgba(212,175,55,0.25)",
           }}
         >
-          <span className="font-display text-[15px] text-wc-gold leading-none">+300</span>
+          <span className="font-display text-[15px] text-wc-gold leading-none">+{points_earned}</span>
           <span className="text-[9px] text-wc-gold/60 font-bold" style={{ letterSpacing: "1px" }}>PTS 🎯</span>
         </div>
       )}
-      {points_earned === 100 && (
+      {(points_earned === 200 || points_earned === 100) && (
         <div
           className="flex items-center gap-1 px-2.5 py-1 rounded"
           style={{
@@ -395,7 +506,7 @@ function CardFooter({
             border: "1px solid rgba(212,175,55,0.2)",
           }}
         >
-          <span className="font-display text-[15px] text-wc-gold leading-none">+100</span>
+          <span className="font-display text-[15px] text-wc-gold leading-none">+{points_earned}</span>
           <span className="text-[9px] text-wc-gold/60 font-bold" style={{ letterSpacing: "1px" }}>PTS ✓</span>
         </div>
       )}
@@ -407,16 +518,15 @@ function CardFooter({
       )}
     </div>
   );
-
-  return footerBase;
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
   const state = getMatchState(match, userPrediction);
+  const teamsKnown = match.home_team !== null && match.away_team !== null;
   const isClickable =
-    state === "upcoming-unpredicted" || state === "upcoming-predicted";
+    teamsKnown && (state === "upcoming-unpredicted" || state === "upcoming-predicted");
   const [time, setTime] = useState<string>("–");
   const [dateLabel, setDateLabel] = useState<string>("");
 
@@ -492,16 +602,14 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-4 pb-0">
         <StateBadge state={state} time={time} dateLabel={dateLabel} />
-        {match.phase === 'group' && match.home_team.group_name && (
-          <GroupBadge name={`Grupo ${match.home_team.group_name}`} />
-        )}
+        <PhaseBadge phase={match.phase} groupName={match.home_team?.group_name} />
       </div>
 
       {/* Match body — symmetric layout */}
       <div className="flex items-center justify-between px-4 py-5">
-        <TeamColumn team={match.home_team} finished={isFinishedState} />
+        <TeamColumn team={match.home_team} slot={match.home_slot} finished={isFinishedState} />
         <ScoreCenter state={state} match={match} userPrediction={userPrediction} />
-        <TeamColumn team={match.away_team} finished={isFinishedState} />
+        <TeamColumn team={match.away_team} slot={match.away_slot} finished={isFinishedState} />
       </div>
 
       {/* Footer */}
@@ -511,6 +619,8 @@ export function MatchCard({ match, userPrediction, onPredictClick }: Props) {
           userPrediction={userPrediction}
           onPredictClick={onPredictClick}
           matchId={match.id}
+          match={match}
+          teamsKnown={teamsKnown}
         />
       </div>
     </div>

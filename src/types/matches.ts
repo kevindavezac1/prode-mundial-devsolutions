@@ -15,8 +15,11 @@ export type MatchWithTeams = {
   status: "scheduled" | "live" | "finished" | "cancelled";
   home_score: number | null;
   away_score: number | null;
-  home_team: Team;
-  away_team: Team;
+  penalty_winner?: string | null;
+  home_slot?: string | null;
+  away_slot?: string | null;
+  home_team: Team | null;
+  away_team: Team | null;
 };
 
 export type Prediction = {
@@ -26,6 +29,7 @@ export type Prediction = {
   away_score: number;
   outcome: "exact" | "correct" | "incorrect" | "pending";
   points_earned: number;
+  predicted_penalty_winner?: "home" | "away" | null;
 };
 
 export type PredictionsMap = Record<number, Prediction>;

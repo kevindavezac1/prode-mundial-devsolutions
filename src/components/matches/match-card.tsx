@@ -83,8 +83,8 @@ export function MatchCard({ match, prediction, onSave }: Props) {
       <div className="flex items-center gap-2">
         {/* Home team */}
         <div className="flex-1 min-w-0 text-right">
-          <p className="font-bold text-sm leading-tight text-white">{match.home_team.code}</p>
-          <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{match.home_team.name}</p>
+          <p className="font-bold text-sm leading-tight text-white">{match.home_team?.code ?? "?"}</p>
+          <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{match.home_team?.name ?? "Por definir"}</p>
         </div>
 
         {/* Score area */}
@@ -126,8 +126,8 @@ export function MatchCard({ match, prediction, onSave }: Props) {
 
         {/* Away team */}
         <div className="flex-1 min-w-0 text-left">
-          <p className="font-bold text-sm leading-tight text-white">{match.away_team.code}</p>
-          <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{match.away_team.name}</p>
+          <p className="font-bold text-sm leading-tight text-white">{match.away_team?.code ?? "?"}</p>
+          <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{match.away_team?.name ?? "Por definir"}</p>
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export default async function AdminPage() {
     .from("matches")
     .select(`
       id, match_number, phase, scheduled_at, venue, status,
-      home_score, away_score,
+      home_score, away_score, penalty_winner, phase, home_slot, away_slot,
       home_team:teams!home_team_id(id, name, code, flag_url),
       away_team:teams!away_team_id(id, name, code, flag_url)
     `)
