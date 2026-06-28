@@ -453,18 +453,24 @@ export function BracketView({ matches }: { matches: MatchWithTeams[] }) {
   const finAll = by("final");
   const tpAll  = by("third_place");
 
-  const h = (arr: MatchWithTeams[]) => Math.ceil(arr.length / 2);
+  const R16_A = [74, 77, 73, 75, 83, 84, 81, 82];
+  const R16_B = [76, 78, 79, 80, 86, 88, 85, 87];
+  const R8_A  = [89, 90, 93, 94];
+  const R8_B  = [91, 92, 95, 96];
+
+  const byNums = (arr: MatchWithTeams[], nums: number[]) =>
+    nums.map(n => arr.find(m => m.match_number === n)).filter((m): m is MatchWithTeams => !!m);
 
   const sideA = {
-    r16: r16All.slice(0, h(r16All)),
-    r8:  r8All.slice(0, h(r8All)),
-    qf:  qfAll.slice(0, h(qfAll)),
+    r16: byNums(r16All, R16_A),
+    r8:  byNums(r8All, R8_A),
+    qf:  qfAll.slice(0, Math.ceil(qfAll.length / 2)),
     sf:  sfAll[0],
   };
   const sideB = {
-    r16: r16All.slice(h(r16All)),
-    r8:  r8All.slice(h(r8All)),
-    qf:  qfAll.slice(h(qfAll)),
+    r16: byNums(r16All, R16_B),
+    r8:  byNums(r8All, R8_B),
+    qf:  qfAll.slice(Math.ceil(qfAll.length / 2)),
     sf:  sfAll[1],
   };
 
