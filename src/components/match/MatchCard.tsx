@@ -262,8 +262,8 @@ function ScoreCenter({
         </span>
       </div>
       {state === "finished" && <PenaltyWinnerLabel match={match} />}
-      {state === "finished" && match.penalty_winner && (
-        userPrediction?.predicted_penalty_winner === match.penalty_winner ? (
+      {state === "finished" && match.penalty_winner && userPrediction?.predicted_penalty_winner != null && (
+        userPrediction.predicted_penalty_winner === match.penalty_winner ? (
           <span
             style={{ letterSpacing: "0.5px" }}
             className="text-[9px] text-green-400/60 mt-0.5 text-center"
